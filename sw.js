@@ -1,5 +1,5 @@
 // Service worker: rede primeiro (sempre pega a versão nova), cache como fallback offline.
-const CACHE = "git-flow-v2";
+const CACHE = "git-flow-v3";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
