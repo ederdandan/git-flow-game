@@ -1,0 +1,2302 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="vscode">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0d1117" />
+  <meta name="description" content="Aprenda Git jogando: 30 fases do git init ao git reflog, sem precisar digitar nada." />
+  <title>GIT FLOW: Aventura do Código</title>
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="GitFlow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ==========================================================================
+       1. 4 TEMAS VISUAIS (DARK VS CODE, CLARO EDITORIAL, DRÁCULA NEON, SOLARIZED)
+       ========================================================================== */
+    :root,
+    [data-theme="vscode"] {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface-2: #21262d;
+      --inset: #090d13;
+      --border: #30363d;
+      --text: #f0f6fc;
+      --text-dim: #8b949e;
+      --accent: #58a6ff;
+      --accent-soft: rgba(88, 166, 255, 0.14);
+      --ok: #3fb950;
+      --warn: #d29922;
+      --danger: #f85149;
+      --gold: #f59e0b;
+      --branch: #a371f7;
+    }
+
+    [data-theme="light"] {
+      --bg: #f3f6fa;
+      --surface: #ffffff;
+      --surface-2: #f8fafc;
+      --inset: #eef2f7;
+      --border: #cbd5e1;
+      --text: #0f172a;
+      --text-dim: #475569;
+      --accent: #2563eb;
+      --accent-soft: rgba(37, 99, 235, 0.1);
+      --ok: #16a34a;
+      --warn: #d97706;
+      --danger: #dc2626;
+      --gold: #d97706;
+      --branch: #7c3aed;
+    }
+
+    [data-theme="dracula"] {
+      --bg: #1e1f29;
+      --surface: #282a36;
+      --surface-2: #343746;
+      --inset: #191a21;
+      --border: #44475a;
+      --text: #f8f8f2;
+      --text-dim: #bd93f9;
+      --accent: #8be9fd;
+      --accent-soft: rgba(139, 233, 253, 0.15);
+      --ok: #50fa7b;
+      --warn: #ffb86c;
+      --danger: #ff5555;
+      --gold: #f1fa8c;
+      --branch: #ff79c6;
+    }
+
+    [data-theme="solarized"] {
+      --bg: #002b36;
+      --surface: #073642;
+      --surface-2: #0d4452;
+      --inset: #00212b;
+      --border: #2aa198;
+      --text: #fdf6e3;
+      --text-dim: #93a1a1;
+      --accent: #268bd2;
+      --accent-soft: rgba(38, 139, 210, 0.18);
+      --ok: #859900;
+      --warn: #b58900;
+      --danger: #dc322f;
+      --gold: #b58900;
+      --branch: #6c71c4;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      width: 100%;
+      min-height: 100dvh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      transition: background 0.25s, color 0.2s;
+    }
+
+    .app {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 10px 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    /* ==========================================================================
+       2. BARRA SUPERIOR COMPACTA
+       ========================================================================== */
+    .topbar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .user-chip {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px 12px 4px 4px;
+      cursor: pointer;
+      color: var(--text);
+    }
+    .user-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      background: var(--inset);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .user-meta { text-align: left; line-height: 1.15; }
+    .user-name { font-weight: 800; font-size: 0.84rem; display: block; }
+    .user-lvl { font-size: 0.68rem; font-weight: 700; color: var(--accent); }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 5px 10px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: var(--text);
+    }
+    .pill.coins { color: var(--gold); border-color: var(--gold); }
+    .pill.btn { cursor: pointer; transition: transform 0.1s, border-color 0.15s; }
+    .pill.btn:hover { border-color: var(--accent); }
+    .pill.btn:active { transform: scale(0.97); }
+
+    /* ==========================================================================
+       3. CARTÃO DE MISSÃO (1 FRASE CLARA E DIRETA)
+       ========================================================================== */
+    .mission-card {
+      background: var(--surface);
+      border: 1.5px solid var(--accent);
+      border-radius: 14px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .mission-left { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 240px; }
+    .mission-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 800;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .mission-goal { font-size: 0.96rem; font-weight: 700; line-height: 1.3; }
+    .mission-controls { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
+    /* ==========================================================================
+       4. TABULEIRO EM 3 ZONAS FIXAS DO GIT
+       ========================================================================== */
+    .board-3zones {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.35fr;
+      gap: 10px;
+    }
+    @media (max-width: 860px) {
+      .board-3zones { grid-template-columns: 1fr; }
+    }
+
+    .zone {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 16px;
+      padding: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      min-height: 195px;
+      position: relative;
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+    .zone.highlight {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--accent-soft);
+    }
+
+    .zone-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 7px;
+    }
+    .zone-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .zone-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.67rem;
+      font-weight: 700;
+      color: var(--text-dim);
+      background: var(--inset);
+      padding: 2px 7px;
+      border-radius: 6px;
+    }
+
+    .zone-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      justify-content: center;
+    }
+
+    .empty-slot {
+      border: 1.5px dashed var(--border);
+      border-radius: 10px;
+      padding: 16px 10px;
+      text-align: center;
+      font-size: 0.76rem;
+      color: var(--text-dim);
+    }
+
+    /* Cartões de Arquivos nas Zonas 1 e 2 */
+    .file-card {
+      background: var(--surface-2);
+      border: 1.5px solid var(--border);
+      border-left-width: 4px;
+      border-radius: 10px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      animation: popIn 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    @keyframes popIn {
+      from { opacity: 0; transform: translateY(6px) scale(0.96); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .file-card.mod   { border-left-color: var(--warn); }
+    .file-card.new   { border-left-color: var(--ok); }
+    .file-card.err   { border-left-color: var(--danger); }
+    .file-card.stage { border-left-color: var(--accent); background: var(--accent-soft); }
+
+    .file-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .file-badge {
+      font-size: 0.66rem;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 999px;
+      text-transform: uppercase;
+    }
+    .badge-mod   { background: rgba(210, 153, 34, 0.2); color: var(--warn); }
+    .badge-new   { background: rgba(63, 185, 80, 0.2); color: var(--ok); }
+    .badge-err   { background: rgba(248, 81, 73, 0.2); color: var(--danger); }
+    .badge-stage { background: var(--accent-soft); color: var(--accent); }
+
+    /* Mochila Stash discreta na Zona 1 */
+    .stash-box {
+      background: var(--inset);
+      border: 1px dashed var(--branch);
+      border-radius: 9px;
+      padding: 6px 10px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--branch);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Zona 3: Linha do Tempo SVG com Personagem Guia */
+    .timeline-wrap {
+      width: 100%;
+      height: 155px;
+      background: var(--inset);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .timeline-wrap svg { width: 100%; height: 100%; display: block; }
+
+    @keyframes guideBob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+    .guide-bob { animation: guideBob 1.8s ease-in-out infinite; }
+
+    /* ==========================================================================
+       5. BALÃO DO GUIA + TERMINAL EM TEMPO REAL
+       ========================================================================== */
+    .feedback-row {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 780px) { .feedback-row { grid-template-columns: 1fr; } }
+
+    .guide-bubble {
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 9px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.82rem;
+      line-height: 1.35;
+    }
+    .guide-bubble.err { border-color: var(--danger); background: rgba(248, 81, 73, 0.08); }
+    .guide-bubble.ok  { border-color: var(--ok); }
+    .guide-icon { font-size: 1.35rem; flex-shrink: 0; }
+
+    .mini-terminal {
+      background: var(--inset);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.74rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 3px;
+    }
+    .term-cmd { color: var(--ok); font-weight: 800; }
+    .term-out { color: var(--text-dim); overflow-wrap: anywhere; }
+
+    /* Próximo passo sempre visível */
+    .next-step {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--text-dim);
+    }
+    .next-step code {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 800;
+      color: var(--gold);
+      background: var(--inset);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1px 6px;
+    }
+    .next-step[hidden] { display: none; }
+
+    /* Foco visível para teclado */
+    button:focus-visible, .pill.btn:focus-within, .text-input:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .how-to {
+      background: var(--inset);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+    .how-to ol { padding-left: 18px; }
+
+
+    /* ==========================================================================
+       6. BOTÕES EXPLICATIVOS CONTEXTUAIS (COMANDO + 3 PALAVRAS)
+       ========================================================================== */
+    .commands-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 11px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .commands-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.76rem;
+      font-weight: 800;
+      color: var(--text-dim);
+    }
+
+    .cmd-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+      gap: 8px;
+    }
+
+    .cmd-btn {
+      background: var(--surface-2);
+      border: 1.5px solid var(--border);
+      border-bottom-width: 3px;
+      border-radius: 11px;
+      padding: 9px 11px;
+      text-align: left;
+      cursor: pointer;
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      transition: transform 0.1s, border-color 0.15s, background 0.15s;
+    }
+    .cmd-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
+    .cmd-btn:active { transform: translateY(2px); border-bottom-width: 1.5px; }
+    .cmd-btn.hinted {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.35);
+      animation: hintPulse 0.9s infinite alternate;
+    }
+    @keyframes hintPulse { from { transform: scale(1); } to { transform: scale(1.02); } }
+
+    .cmd-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 800;
+      color: var(--accent);
+    }
+    .cmd-sub {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-dim);
+    }
+
+    /* ==========================================================================
+       7. MODAIS (PASSAPORTE, FASES, VITÓRIA, TEMAS, GUIA RÁPIDO)
+       ========================================================================== */
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.76);
+      backdrop-filter: blur(5px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+    }
+    .modal-bg.open { display: flex; }
+
+    .modal-card {
+      background: var(--surface);
+      border: 1.5px solid var(--accent);
+      border-radius: 18px;
+      max-width: 520px;
+      width: 100%;
+      max-height: 90dvh;
+      overflow-y: auto;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+    }
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 9px;
+    }
+    .modal-head h2 { font-size: 1.08rem; font-weight: 800; }
+    .close-btn {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .field-lbl { font-size: 0.74rem; font-weight: 800; color: var(--text-dim); margin-bottom: 4px; display: block; text-transform: uppercase; }
+    .text-input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border);
+      background: var(--inset);
+      color: var(--text);
+      font-size: 0.92rem;
+      font-weight: 700;
+      outline: none;
+    }
+    .text-input:focus { border-color: var(--accent); }
+
+    .avatar-setup {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--inset);
+      padding: 10px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    .avatar-preview {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 2.5px solid var(--accent);
+      background: var(--surface-2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .avatar-preview img { width: 100%; height: 100%; object-fit: cover; }
+
+    .cam-box {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      background: #000;
+      padding: 10px;
+      border-radius: 12px;
+    }
+    .cam-box.open { display: flex; }
+    .cam-box video { width: 100%; max-height: 180px; border-radius: 8px; object-fit: cover; transform: scaleX(-1); }
+
+    .avatar-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 6px;
+    }
+    @media (max-width: 440px) { .avatar-grid { grid-template-columns: repeat(4, 1fr); } }
+    .av-choice {
+      background: var(--surface-2);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 6px 4px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: var(--text-dim);
+    }
+    .av-choice.selected { border-color: var(--accent); color: var(--text); background: var(--accent-soft); }
+
+    .primary-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 11px;
+      padding: 11px 16px;
+      font-size: 0.92rem;
+      font-weight: 800;
+      cursor: pointer;
+      text-align: center;
+    }
+    [data-theme="dracula"] .primary-btn { color: #191a21; }
+
+    .stages-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+    }
+    .stage-cell {
+      background: var(--surface-2);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 4px;
+      text-align: center;
+      cursor: pointer;
+      color: var(--text);
+      font-weight: 800;
+      font-size: 0.8rem;
+    }
+    .stage-cell.active { border-color: var(--accent); background: var(--accent-soft); }
+    .stage-cell.done   { border-color: var(--ok); }
+    .stage-cell.locked { opacity: 0.4; cursor: not-allowed; }
+
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .theme-card {
+      background: var(--surface-2);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    /* ==========================================================================
+       8. AJUSTES MOBILE E ACESSIBILIDADE (NO FIM PARA VENCER AS REGRAS ACIMA)
+       ========================================================================== */
+    @media (max-width: 860px) {
+      .zone { min-height: 0; }
+      .empty-slot { padding: 10px; }
+      .timeline-wrap { height: auto; aspect-ratio: 460 / 155; }
+    }
+    @media (max-width: 520px) {
+      .cmd-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+      .cmd-btn { padding: 9px 8px; min-height: 58px; }
+      .cmd-title { font-size: 0.74rem; overflow-wrap: anywhere; }
+      .mission-controls { width: 100%; }
+      .mission-controls .pill { flex: 1; justify-content: center; text-align: center; padding: 8px 6px; }
+      .commands-head { flex-direction: column; align-items: flex-start; gap: 2px; }
+      .modal-card { padding: 14px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- ======================================================================
+         1. BARRA SUPERIOR (PERFIL, FASES, MOEDAS, TEMAS, GUIA E SOM)
+         ====================================================================== -->
+    <header class="topbar">
+      <button type="button" class="user-chip" id="btnOpenProfile" title="Editar Passaporte Local">
+        <div class="user-avatar" id="hudAvatar"></div>
+        <div class="user-meta">
+          <span class="user-name" id="hudName">Dev Aprendiz</span>
+          <span class="user-lvl" id="hudLevelBadge">Nível 1 • Fácil</span>
+        </div>
+      </button>
+
+      <div class="nav-actions">
+        <button type="button" class="pill btn" id="btnOpenStages">🗺️ Fase <span id="hudStage">1</span>/30</button>
+        <div class="pill coins">🪙 <span id="hudCoins">100</span></div>
+        <div class="pill">⭐ <span id="hudStars">0</span></div>
+        <button type="button" class="pill btn" id="btnOpenThemes">🎨 Temas</button>
+        <button type="button" class="pill btn" id="btnOpenGuide">📘 Guia Rápido</button>
+        <button type="button" class="pill btn" id="btnAudio" aria-label="Ligar ou desligar som" title="Som">🔊</button>
+      </div>
+    </header>
+
+    <!-- ======================================================================
+         2. CARTÃO DE MISSÃO (1 FRASE DIRETA + DICAS + REINICIAR)
+         ====================================================================== -->
+    <section class="mission-card">
+      <div class="mission-left">
+        <span class="mission-tag" id="missionTitle">FASE 1 • INICIANDO UM REPOSITÓRIO</span>
+        <div class="mission-goal" id="missionGoal">Carregando missão...</div>
+        <div class="next-step" id="nextStep" hidden>👉 Próximo passo: <code id="nextStepCmd"></code></div>
+      </div>
+      <div class="mission-controls">
+        <button type="button" class="pill btn" id="btnHint1" title="Mostra qual é o próximo comando">💡 Dica (Grátis)</button>
+        <button type="button" class="pill btn" id="btnHint2" title="Destaca em dourado o botão do próximo comando">🎯 Destacar Botão (15 🪙)</button>
+        <button type="button" class="pill btn" id="btnRestart">↺ Reiniciar</button>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         3. TABULEIRO VISUAL EM 3 ZONAS FIXAS DO GIT
+         ====================================================================== -->
+    <main class="board-3zones">
+      <!-- ZONA 1: SUA PASTA (WORKING DIRECTORY) -->
+      <section class="zone" id="zoneWorking">
+        <div class="zone-head">
+          <span class="zone-title">📁 1. Sua Pasta</span>
+          <span class="zone-sub">Working Dir</span>
+        </div>
+        <div class="zone-body" id="workingBody"></div>
+      </section>
+
+      <!-- ZONA 2: PREPARAÇÃO (STAGING AREA) -->
+      <section class="zone" id="zoneStaging">
+        <div class="zone-head">
+          <span class="zone-title">📦 2. Preparação</span>
+          <span class="zone-sub">Staging Area</span>
+        </div>
+        <div class="zone-body" id="stagingBody"></div>
+      </section>
+
+      <!-- ZONA 3: HISTÓRICO & GITHUB (COMMITS -> ORIGIN) -->
+      <section class="zone" id="zoneHistory">
+        <div class="zone-head">
+          <span class="zone-title">🚀 3. Histórico & GitHub</span>
+          <span class="zone-sub" id="branchIndicator">branch: main</span>
+        </div>
+        <div class="zone-body">
+          <div class="timeline-wrap">
+            <svg id="timelineSvg" viewBox="0 0 460 155" xmlns="http://www.w3.org/2000/svg"></svg>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ======================================================================
+         4. BALÃO DO PERSONAGEM GUIA + TERMINAL EM TEMPO REAL
+         ====================================================================== -->
+    <section class="feedback-row">
+      <div class="guide-bubble" id="guideBubble" role="status" aria-live="polite">
+        <span class="guide-icon" id="guideIcon">🤖</span>
+        <span id="guideText">Observe as 3 colunas acima e clique no comando Git certo abaixo.</span>
+      </div>
+      <div class="mini-terminal">
+        <div class="term-cmd" id="termCmd">$ aguardando comando...</div>
+        <div class="term-out" id="termOut">Saída do terminal Git aparecerá aqui.</div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         5. BOTÕES EXPLICATIVOS CONTEXTUAIS (SEM PRECISAR DIGITAR)
+         ====================================================================== -->
+    <section class="commands-panel">
+      <div class="commands-head">
+        <span id="deckLabel">COMANDOS DISPONÍVEIS NESTE MÓDULO</span>
+        <span id="stepsLabel">Jogadas: 0</span>
+      </div>
+      <div class="cmd-grid" id="cmdGrid"></div>
+    </section>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 1: PASSAPORTE LOCAL (PRIMEIRA ENTRADA)
+       ======================================================================== -->
+  <div class="modal-bg" id="passportModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>🛂 Passaporte do Desenvolvedor</h2>
+        <button type="button" class="close-btn" id="btnClosePassport" aria-label="Fechar">✕</button>
+      </div>
+      <div class="how-to" id="howToPlay">
+        <strong>🎮 Como jogar (sem digitar nada):</strong>
+        <ol>
+          <li>Leia a <strong>missão</strong> no cartão azul do topo.</li>
+          <li>Clique nos <strong>botões de comando</strong> lá embaixo, na ordem certa.</li>
+          <li>Leve os arquivos de <strong>📁 Sua Pasta</strong> → <strong>📦 Preparação</strong> → <strong>🚀 GitHub 🏁</strong>.</li>
+          <li>Travou? Use <strong>💡 Dica</strong>: ela mostra o próximo comando.</li>
+        </ol>
+      </div>
+      <div>
+        <label class="field-lbl" for="inpPlayerName">Seu Nome ou Apelido</label>
+        <input type="text" id="inpPlayerName" class="text-input" maxlength="20" placeholder="Ex: Ana Dev..." />
+      </div>
+
+      <div class="avatar-setup">
+        <div class="avatar-preview" id="passportPreview"></div>
+        <div style="display:flex; flex-direction:column; gap:6px; flex:1;">
+          <span style="font-size:0.78rem; font-weight:700; color:var(--text-dim);">Escolha um ícone abaixo ou envie sua foto:</span>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button type="button" class="pill btn" id="btnCamOpen">📷 Câmera</button>
+            <label class="pill btn" style="cursor:pointer;">
+              🖼️ Galeria
+              <input type="file" id="inpGalleryFile" accept="image/*" style="display:none;" />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="cam-box" id="camBox">
+        <video id="camVideo" autoplay playsinline muted></video>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="primary-btn" id="btnCamSnap" style="padding:7px 14px; font-size:0.82rem;">📸 Tirar Foto</button>
+          <button type="button" class="pill btn" id="btnCamStop">Cancelar</button>
+        </div>
+      </div>
+
+      <div>
+        <span class="field-lbl">12 Avatares de Desenvolvedor & Robô</span>
+        <div class="avatar-grid" id="avatarChoiceGrid"></div>
+      </div>
+
+      <button type="button" class="primary-btn" id="btnSavePassport">Iniciar Aventura 🚀</button>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 2: MAPA DAS 30 FASES (3 NÍVEIS)
+       ======================================================================== -->
+  <div class="modal-bg" id="stagesModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>🗺️ Escolha a Fase (30 Missões)</h2>
+        <button type="button" class="close-btn" id="btnCloseStages" aria-label="Fechar">✕</button>
+      </div>
+      <div id="stagesListBody" style="display:flex; flex-direction:column; gap:12px;"></div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 3: VITÓRIA DA FASE
+       ======================================================================== -->
+  <div class="modal-bg" id="victoryModal">
+    <div class="modal-card" style="text-align:center;">
+      <div id="vicLevelUp" style="display:none; background:var(--accent-soft); color:var(--accent); border:1px solid var(--accent); padding:5px 10px; border-radius:999px; font-size:0.76rem; font-weight:800;">
+        🎉 NOVO NÍVEL DESBLOQUEADO!
+      </div>
+      <div style="font-size:2.6rem;" id="vicStars">⭐⭐⭐</div>
+      <h2 id="vicTitle">Código Enviado ao GitHub!</h2>
+      <p style="font-size:0.84rem; color:var(--text-dim);" id="vicSummary"></p>
+      <div style="background:var(--inset); padding:10px; border-radius:10px; font-weight:800; color:var(--gold);" id="vicCoins">
+        +40 CodeCoins!
+      </div>
+      <div style="display:flex; gap:8px; justify-content:center;">
+        <button type="button" class="pill btn" id="btnVicRepeat">↺ Jogar Novamente</button>
+        <button type="button" class="primary-btn" id="btnVicNext">Próxima Fase ➔</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 4: TEMAS VISUAIS (DESBLOQUEÁVEIS COM CODECOINS)
+       ======================================================================== -->
+  <div class="modal-bg" id="themesModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>🎨 Temas Visuais</h2>
+        <button type="button" class="close-btn" id="btnCloseThemes" aria-label="Fechar">✕</button>
+      </div>
+      <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:700;">
+        <span>Personalize o visual do seu ambiente:</span>
+        <span style="color:var(--gold);">Saldo: <span id="themeCoins">0</span> 🪙</span>
+      </div>
+      <div class="theme-grid" id="themesGrid"></div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MODAL 5: GUIA RÁPIDO GIT (COLA VISUAL DAS 3 ZONAS)
+       ======================================================================== -->
+  <div class="modal-bg" id="guideModal">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>📘 Guia Rápido: Como o Git Funciona</h2>
+        <button type="button" class="close-btn" id="btnCloseGuide" aria-label="Fechar">✕</button>
+      </div>
+      <div style="background:var(--inset); padding:10px; border-radius:10px; font-size:0.8rem; line-height:1.45;">
+        <strong>O fluxo padrão em 3 passos:</strong><br>
+        1️⃣ <strong>Sua Pasta (Working Dir):</strong> Onde você edita ou cria arquivos.<br>
+        2️⃣ <strong>Preparação (Staging Area):</strong> Use <code>git add .</code> para escolher o que vai ser salvo.<br>
+        3️⃣ <strong>Histórico & GitHub:</strong> Use <code>git commit</code> para criar um ponto salvo na linha do tempo e <code>git push</code> para enviar ao GitHub!
+      </div>
+      <div id="guideCommandsList" style="display:flex; flex-direction:column; gap:6px;"></div>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================================
+       PWA MANIFEST & SERVICE WORKER INLINE (GITHUB PAGES OFFLINE-FIRST)
+       ========================================================================== */
+    // Manifest e ícones ficam em arquivos reais (manifest.webmanifest, sw.js).
+    // Service worker em Blob URL é rejeitado pelos navegadores.
+    (function setupPWA() {
+      try {
+        if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+          navigator.serviceWorker.register("sw.js").catch(() => {});
+        }
+      } catch (e) {}
+    })();
+
+    /* ==========================================================================
+       ÁUDIO SINTETIZADO SUTIL (WEB AUDIO API)
+       ========================================================================== */
+    const Sound = (() => {
+      let ctx = null;
+      let on = true;
+      function beep(f1, f2, type, dur, vol = 0.09, delay = 0) {
+        if (!on) return;
+        try {
+          if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+          if (ctx.state === "suspended") ctx.resume();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(f1, ctx.currentTime + delay);
+          if (f2) osc.frequency.exponentialRampToValueAtTime(f2, ctx.currentTime + delay + dur);
+          gain.gain.setValueAtTime(vol, ctx.currentTime + delay);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + dur);
+          osc.connect(gain); gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + delay);
+          osc.stop(ctx.currentTime + delay + dur);
+        } catch (e) {}
+      }
+      return {
+        toggle() { on = !on; return on; },
+        set(v)   { on = Boolean(v); },
+        step()   { beep(420, 680, "sine", 0.12); },
+        commit() { beep(340, 560, "triangle", 0.16, 0.11); },
+        err()    { beep(180, 110, "sawtooth", 0.18, 0.1); },
+        win()    { [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => beep(f, f * 1.03, "triangle", 0.18, 0.11, i * 0.08)); }
+      };
+    })();
+
+    /* ==========================================================================
+       12 AVATARES SVG DE DESENVOLVEDOR / ROBÔ
+       ========================================================================== */
+    const AVATARS = [
+      { id: "bot1",  name: "CodeBot",  svg: `<svg viewBox="0 0 36 36"><rect x="7" y="10" width="22" height="18" rx="6" fill="#2563eb"/><circle cx="14" cy="19" r="2.5" fill="#8be9fd"/><circle cx="22" cy="19" r="2.5" fill="#8be9fd"/><line x1="18" y1="5" x2="18" y2="10" stroke="#f59e0b" stroke-width="2.5"/><circle cx="18" cy="4" r="2.5" fill="#f59e0b"/></svg>` },
+      { id: "dev1",  name: "Coder",    svg: `<svg viewBox="0 0 36 36"><circle cx="18" cy="14" r="7" fill="#fde68a"/><path d="M8 31 C8 23, 28 23, 28 31 Z" fill="#0d9488"/><rect x="12" y="12" width="12" height="4" rx="2" fill="#0f172a"/></svg>` },
+      { id: "git",   name: "GitNode",  svg: `<svg viewBox="0 0 36 36"><circle cx="11" cy="10" r="3.5" fill="#58a6ff"/><circle cx="11" cy="26" r="3.5" fill="#58a6ff"/><circle cx="25" cy="18" r="3.5" fill="#3fb950"/><path d="M11 13.5 V22.5 M11 20 C11 16, 25 18, 25 18" stroke="#58a6ff" stroke-width="2.5" fill="none"/></svg>` },
+      { id: "ninja", name: "GitNinja", svg: `<svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="12" fill="#1e293b"/><rect x="9" y="14" width="18" height="6" rx="3" fill="#fde68a"/><circle cx="14" cy="17" r="1.8" fill="#0f172a"/><circle cx="22" cy="17" r="1.8" fill="#0f172a"/></svg>` },
+      { id: "astro", name: "Orbit",    svg: `<svg viewBox="0 0 36 36"><circle cx="18" cy="18" r="12" fill="#e2e8f0"/><rect x="10" y="12" width="16" height="9" rx="4" fill="#0284c7"/></svg>` },
+      { id: "cat",   name: "OctoDev",  svg: `<svg viewBox="0 0 36 36"><circle cx="18" cy="19" r="10" fill="#7c3aed"/><polygon points="10,12 13,5 16,11" fill="#7c3aed"/><polygon points="26,12 23,5 20,11" fill="#7c3aed"/><circle cx="15" cy="18" r="2" fill="#fff"/><circle cx="21" cy="18" r="2" fill="#fff"/></svg>` },
+      { id: "term",  name: "Shell",    svg: `<svg viewBox="0 0 36 36"><rect x="6" y="8" width="24" height="20" rx="5" fill="#0f172a" stroke="#3fb950" stroke-width="2"/><path d="M11 15 L15 18 L11 21 M17 21 H23" stroke="#3fb950" stroke-width="2.2" fill="none"/></svg>` },
+      { id: "fox",   name: "FoxGit",   svg: `<svg viewBox="0 0 36 36"><polygon points="8,9 14,16 10,25" fill="#f97316"/><polygon points="28,9 22,16 26,25" fill="#f97316"/><circle cx="18" cy="20" r="9" fill="#fb923c"/><circle cx="15" cy="19" r="1.8" fill="#0f172a"/><circle cx="21" cy="19" r="1.8" fill="#0f172a"/></svg>` },
+      { id: "owl",   name: "Mentor",   svg: `<svg viewBox="0 0 36 36"><circle cx="18" cy="19" r="11" fill="#475569"/><circle cx="14" cy="17" r="3.5" fill="#fff"/><circle cx="22" cy="17" r="3.5" fill="#fff"/><circle cx="14" cy="17" r="1.5" fill="#0f172a"/><circle cx="22" cy="17" r="1.5" fill="#0f172a"/></svg>` },
+      { id: "bolt",  name: "FastPush", svg: `<svg viewBox="0 0 36 36"><polygon points="20,5 10,19 17,19 15,31 26,17 19,17" fill="#f59e0b"/></svg>` },
+      { id: "chip",  name: "Kernel",   svg: `<svg viewBox="0 0 36 36"><rect x="10" y="10" width="16" height="16" rx="3" fill="#0ea5e9"/><rect x="14" y="14" width="8" height="8" fill="#0f172a"/></svg>` },
+      { id: "star",  name: "Release",  svg: `<svg viewBox="0 0 36 36"><polygon points="18,5 21,14 31,14 23,20 26,29 18,23 10,29 13,20 5,14 15,14" fill="#fbbf24"/></svg>` }
+    ];
+
+    /* ==========================================================================
+       COMANDOS GIT EXPLICATIVOS (COMANDO + 3 PALAVRAS)
+       ========================================================================== */
+    const COMMANDS = {
+      "init":       { code: "git init",                short: "Inicia repositório Git",     desc: "Cria a pasta oculta .git para começar a rastrear o projeto." },
+      "status":     { code: "git status",              short: "Mostra estado atual",        desc: "Lista quais arquivos estão modificados na pasta ou prontos na Preparação." },
+      "diff":       { code: "git diff",                short: "Vê linhas alteradas",        desc: "Mostra exatamente o que mudou dentro do arquivo antes de preparar." },
+      "add":        { code: "git add .",               short: "Move para Preparação",       desc: "Envia os arquivos válidos da Sua Pasta para a área de Preparação (Staging)." },
+      "restore":    { code: "git restore .",           short: "Descarta erro local",        desc: "Apaga alterações com erro na Sua Pasta, voltando ao último commit limpo." },
+      "commit":     { code: "git commit -m 'ok'",      short: "Salva nó no Histórico",      desc: "Grava tudo que está na Preparação como um novo commit na linha do tempo." },
+      "push":       { code: "git push",                short: "Envia para o GitHub",        desc: "Publica seus commits locais no servidor remoto GitHub (origin)." },
+
+      "branch":     { code: "git branch nova-tela",    short: "Cria linha paralela",        desc: "Cria uma nova branch chamada 'nova-tela' sem sair da atual." },
+      "switch_new": { code: "git switch -c nova-tela", short: "Cria e entra na branch",     desc: "Cria a branch 'nova-tela' e move você imediatamente para ela." },
+      "switch_b":   { code: "git switch nova-tela",    short: "Muda para nova-tela",        desc: "Troca sua posição atual para a branch 'nova-tela'." },
+      "switch_m":   { code: "git switch main",         short: "Volta para a main",          desc: "Retorna sua posição atual para a branch principal 'main'." },
+      "merge":      { code: "git merge nova-tela",     short: "Une branch na main",         desc: "Traz os commits feitos na 'nova-tela' para dentro da 'main'." },
+      "stash":      { code: "git stash",               short: "Guarda rascunho na gaveta",  desc: "Guarda arquivos inacabados numa gaveta temporária para limpar a pasta." },
+      "stash_pop":  { code: "git stash pop",           short: "Recupera da gaveta",         desc: "Traz de volta os arquivos que estavam guardados no Stash." },
+      "pull":       { code: "git pull",                short: "Baixa novidades do GitHub",  desc: "Atualiza seu histórico local trazendo commits novos do GitHub." },
+
+      "revert":     { code: "git revert HEAD",         short: "Desfaz commit com segurança",desc: "Cria um novo commit que anula o commit defeituoso sem apagar histórico." },
+      "reset_soft": { code: "git reset --soft HEAD~1", short: "Volta commit → Preparação",  desc: "Desfaz o último commit, mas mantém os arquivos prontos na Preparação." },
+      "reset_hard": { code: "git reset --hard HEAD~1", short: "Apaga último commit",        desc: "Volta um commit no tempo descartando completamente o commit quebrado." },
+      "cherry":     { code: "git cherry-pick fix",     short: "Copia 1 commit específico",  desc: "Pega apenas o commit 'fix' da outra branch e aplica na sua linha atual." },
+      "amend":      { code: "git commit --amend",      short: "Completa último commit",     desc: "Adiciona o que está na Preparação dentro do commit anterior sem criar outro." },
+      "tag":        { code: "git tag v1.0",            short: "Marca versão oficial",       desc: "Coloca uma etiqueta 'v1.0' no commit atual para lançamento." },
+      "reflog":     { code: "git reflog",              short: "Resgata commit perdido",     desc: "Consulta o histórico secreto do Git para recuperar um commit apagado." }
+    };
+
+    const LEVEL_DECKS = [
+      { level: 1, title: "Nível 1 • Fácil: O Dia a Dia",             cmds: ["init", "status", "diff", "add", "restore", "commit", "push"] },
+      { level: 2, title: "Nível 2 • Médio: Equipe & Branches",       cmds: ["branch", "switch_new", "switch_b", "switch_m", "merge", "stash", "stash_pop", "pull", "add", "commit", "push"] },
+      { level: 3, title: "Nível 3 • Difícil: Resgate & Correções",   cmds: ["revert", "reset_soft", "reset_hard", "cherry", "amend", "tag", "reflog", "add", "commit", "push"] }
+    ];
+
+    /* ==========================================================================
+       30 FASES PROGRESSIVAS (10 POR NÍVEL, 1 OBJETIVO CLARO POR FASE)
+       ========================================================================== */
+    const STAGES = [
+      // ==================== NÍVEL 1 — FÁCIL (1 a 10) ====================
+      {
+        id: 1, lvl: 1, title: "Fase 1 • Primeiro Repositório", par: 4,
+        goal: "Inicie o Git (git init), prepare o index.html (git add .), salve um commit e envie ao GitHub (git push).",
+        needInit: true, files: [{ name: "index.html", type: "new" }],
+        hint: "init"
+      },
+      {
+        id: 2, lvl: 1, title: "Fase 2 • Fluxo Básico Completo", par: 3,
+        goal: "O repositório já está iniciado! Prepare app.js, salve um commit e envie para o GitHub.",
+        needInit: false, files: [{ name: "app.js", type: "mod" }],
+        hint: "add"
+      },
+      {
+        id: 3, lvl: 1, title: "Fase 3 • Múltiplos Arquivos", par: 3,
+        goal: "Prepare os dois arquivos juntos com 'git add .', salve o commit e envie ao GitHub.",
+        needInit: false, files: [{ name: "index.html", type: "mod" }, { name: "style.css", type: "new" }],
+        hint: "add"
+      },
+      {
+        id: 4, lvl: 1, title: "Fase 4 • Verificando o Status", par: 4,
+        goal: "Use 'git status' para checar sua pasta, depois prepare, commite e envie ao GitHub.",
+        needInit: false, requireInspect: "status", files: [{ name: "contato.html", type: "new" }],
+        hint: "status"
+      },
+      {
+        id: 5, lvl: 1, title: "Fase 5 • Descartando um Erro", par: 4,
+        goal: "Há um arquivo com erro! Descarte-o com 'git restore .', depois prepare o arquivo bom, commite e dê push.",
+        needInit: false, files: [{ name: "bug.js", type: "err" }, { name: "menu.js", type: "mod" }],
+        hint: "restore"
+      },
+      {
+        id: 6, lvl: 1, title: "Fase 6 • Inspecionando Mudanças (diff)", par: 4,
+        goal: "Use 'git diff' para revisar a alteração em login.js, depois prepare, commite e dê push.",
+        needInit: false, requireInspect: "diff", files: [{ name: "login.js", type: "mod" }],
+        hint: "diff"
+      },
+      {
+        id: 7, lvl: 1, title: "Fase 7 • Dois Commits Seguidos", par: 5,
+        goal: "Prepare e commite o primeiro arquivo; depois o segundo arquivo aparecerá para você commitar e dar push.",
+        needInit: false, files: [{ name: "header.html", type: "new" }], nextWave: [{ name: "footer.html", type: "new" }],
+        hint: "add"
+      },
+      {
+        id: 8, lvl: 1, title: "Fase 8 • Revisão + Limpeza", par: 5,
+        goal: "Descarte o erro (git restore .), cheque com 'git status', prepare, commite e envie.",
+        needInit: false, requireInspect: "status", files: [{ name: "crash.css", type: "err" }, { name: "tema.css", type: "mod" }],
+        hint: "restore"
+      },
+      {
+        id: 9, lvl: 1, title: "Fase 9 • Projeto do Zero", par: 4,
+        goal: "Inicie o Git, prepare README.md, salve o commit e publique no GitHub.",
+        needInit: true, files: [{ name: "README.md", type: "new" }],
+        hint: "init"
+      },
+      {
+        id: 10, lvl: 1, title: "Fase 10 • Desafio Nível Fácil", par: 5,
+        goal: "Inicie o repositório, limpe o arquivo com erro, prepare o código limpo, commite e dê push!",
+        needInit: true, files: [{ name: "erro.log", type: "err" }, { name: "sistema.js", type: "new" }],
+        hint: "init"
+      },
+
+      // ==================== NÍVEL 2 — MÉDIO (11 a 20) ====================
+      {
+        id: 11, lvl: 2, title: "Fase 11 • Criando uma Branch", par: 7,
+        goal: "Crie 'nova-tela' (git branch nova-tela), entre nela (git switch nova-tela), prepare, commite, volte à main e faça merge + push!",
+        needInit: false, needBranchWork: true, files: [{ name: "perfil.html", type: "new" }],
+        hint: "branch"
+      },
+      {
+        id: 12, lvl: 2, title: "Fase 12 • Atalho switch -c", par: 6,
+        goal: "Use 'git switch -c nova-tela' para criar e entrar na branch de uma vez, commite o arquivo, volte à main e una com merge!",
+        needInit: false, needBranchWork: true, files: [{ name: "card.css", type: "new" }],
+        hint: "switch_new"
+      },
+      {
+        id: 13, lvl: 2, title: "Fase 13 • Atualizando do GitHub (pull)", par: 2,
+        goal: "Um colega enviou alterações ao GitHub! Baixe com 'git pull' e depois envie sua versão com 'git push'.",
+        needInit: false, needPull: true, files: [],
+        hint: "pull"
+      },
+      {
+        id: 14, lvl: 2, title: "Fase 14 • Guardando Rascunho (stash)", par: 6,
+        goal: "Guarde o rascunho na gaveta (git stash), baixe novidades (git pull), recupere (git stash pop), commite e envie!",
+        needInit: false, needPull: true, needStashCycle: true, files: [{ name: "rascunho.js", type: "mod" }],
+        hint: "stash"
+      },
+      {
+        id: 15, lvl: 2, title: "Fase 15 • Feature Isolada + Push", par: 6,
+        goal: "Desenvolva 'busca.js' dentro da branch 'nova-tela', volte para 'main', faça 'git merge nova-tela' e 'git push'.",
+        needInit: false, needBranchWork: true, files: [{ name: "busca.js", type: "new" }],
+        hint: "switch_new"
+      },
+      {
+        id: 16, lvl: 2, title: "Fase 16 • Pull Antes do Trabalho", par: 4,
+        goal: "Sincronize primeiro com 'git pull', depois prepare 'api.js', salve o commit e envie ao GitHub.",
+        needInit: false, needPull: true, files: [{ name: "api.js", type: "mod" }],
+        hint: "pull"
+      },
+      {
+        id: 17, lvl: 2, title: "Fase 17 • Gaveta Stash Simples", par: 5,
+        goal: "Use 'git stash' para guardar 'modal.js', recupere com 'git stash pop', prepare, commite e dê push.",
+        needInit: false, needStashCycle: true, files: [{ name: "modal.js", type: "new" }],
+        hint: "stash"
+      },
+      {
+        id: 18, lvl: 2, title: "Fase 18 • Branch + Pull", par: 7,
+        goal: "Atualize com 'git pull', crie a branch 'nova-tela', commite 'galeria.html', volte à main, faça merge e push.",
+        needInit: false, needPull: true, needBranchWork: true, files: [{ name: "galeria.html", type: "new" }],
+        hint: "pull"
+      },
+      {
+        id: 19, lvl: 2, title: "Fase 19 • Stash + Branch", par: 8,
+        goal: "Guarde 'widget.js' no stash, entre em 'nova-tela', recupere com 'stash pop', commite, volte à main, merge e push!",
+        needInit: false, needStashCycle: true, needBranchWork: true, files: [{ name: "widget.js", type: "new" }],
+        hint: "stash"
+      },
+      {
+        id: 20, lvl: 2, title: "Fase 20 • Desafio Nível Médio", par: 7,
+        goal: "Sincronize (pull), trabalhe na branch 'nova-tela', integre na 'main' (merge) e publique no GitHub (push)!",
+        needInit: false, needPull: true, needBranchWork: true, files: [{ name: "dashboard.js", type: "new" }],
+        hint: "pull"
+      },
+
+      // ==================== NÍVEL 3 — DIFÍCIL (21 a 30) ====================
+      {
+        id: 21, lvl: 3, title: "Fase 21 • Desfazendo Commit (revert)", par: 2,
+        goal: "O último commit no histórico está quebrado! Use 'git revert HEAD' para anulá-lo com segurança e dê 'git push'.",
+        needInit: false, brokenCommit: true, files: [],
+        hint: "revert"
+      },
+      {
+        id: 22, lvl: 3, title: "Fase 22 • Apagando Commit Local (reset --hard)", par: 4,
+        goal: "O último commit local tem um bug grave! Apague-o com 'git reset --hard HEAD~1', depois prepare o arquivo bom, commite e dê push.",
+        needInit: false, brokenCommit: true, files: [{ name: "seguro.js", type: "new" }],
+        hint: "reset_hard"
+      },
+      {
+        id: 23, lvl: 3, title: "Fase 23 • Corrigindo Commit (reset --soft)", par: 3,
+        goal: "Use 'git reset --soft HEAD~1' para devolver o commit à Preparação, depois salve novamente e dê push.",
+        needInit: false, softCommit: true, files: [],
+        hint: "reset_soft"
+      },
+      {
+        id: 24, lvl: 3, title: "Fase 24 • Completando Commit (--amend)", par: 3,
+        goal: "Você esqueceu 'icone.svg' no último commit! Prepare com 'git add .', una ao commit anterior com 'git commit --amend' e dê push.",
+        needInit: false, files: [{ name: "icone.svg", type: "new" }], preferAmend: true,
+        hint: "add"
+      },
+      {
+        id: 25, lvl: 3, title: "Fase 25 • Copiando 1 Commit (cherry-pick)", par: 2,
+        goal: "A branch 'hotfix' tem a correção 'fix' pronta! Traga só esse commit com 'git cherry-pick fix' e envie ao GitHub.",
+        needInit: false, hasCherryFix: true, files: [],
+        hint: "cherry"
+      },
+      {
+        id: 26, lvl: 3, title: "Fase 26 • Etiquetando Versão (tag v1.0)", par: 4,
+        goal: "Prepare 'release.js', faça commit, marque o lançamento com 'git tag v1.0' e envie ao GitHub!",
+        needInit: false, needTag: true, files: [{ name: "release.js", type: "new" }],
+        hint: "add"
+      },
+      {
+        id: 27, lvl: 3, title: "Fase 27 • Resgate no Histórico (reflog)", par: 2,
+        goal: "Um commit importante foi apagado por engano! Resgate-o com 'git reflog' e envie ao GitHub com 'git push'.",
+        needInit: false, lostCommit: true, files: [],
+        hint: "reflog"
+      },
+      {
+        id: 28, lvl: 3, title: "Fase 28 • Cherry-Pick + Tag v1.0", par: 3,
+        goal: "Puxe o commit 'fix' com 'git cherry-pick fix', marque 'git tag v1.0' e envie ao GitHub!",
+        needInit: false, hasCherryFix: true, needTag: true, files: [],
+        hint: "cherry"
+      },
+      {
+        id: 29, lvl: 3, title: "Fase 29 • Revert + Novo Arquivo", par: 4,
+        goal: "Anule o commit quebrado (git revert HEAD), depois prepare 'patch.js', commite e envie ao GitHub.",
+        needInit: false, brokenCommit: true, files: [{ name: "patch.js", type: "new" }],
+        hint: "revert"
+      },
+      {
+        id: 30, lvl: 3, title: "Fase 30 • Mestre Supremo do Git", par: 5,
+        goal: "Resgate o commit perdido (git reflog), prepare 'final.js' (git add .), una ao commit com '--amend', marque 'git tag v1.0' e dê 'git push'!",
+        needInit: false, lostCommit: true, needTag: true, preferAmend: true, files: [{ name: "final.js", type: "new" }],
+        hint: "reflog"
+      }
+    ];
+
+    /* ==========================================================================
+       4 TEMAS VISUAIS
+       ========================================================================== */
+    const THEMES = [
+      { id: "vscode",    name: "Dark VS Code",    desc: "Tema escuro clássico de programação.", price: 0 },
+      { id: "light",     name: "Claro Editorial", desc: "Fundo claro de altíssima leitura.",    price: 0 },
+      { id: "dracula",   name: "Drácula Neon",    desc: "Contraste vibrante roxo e ciano.",     price: 50 },
+      { id: "solarized", name: "Solarized Dark",  desc: "Paleta clássica suave para os olhos.", price: 70 }
+    ];
+
+    /* ==========================================================================
+       ESTADO PERSISTENTE (LOCALSTORAGE) & MOTOR DO JOGO
+       ========================================================================== */
+    const STORAGE_KEY = "git_flow_aventura_v1";
+
+    let profile = {
+      created: false,
+      name: "Dev Aprendiz",
+      picType: "avatar",
+      picVal: "bot1",
+      coins: 100,
+      theme: "vscode",
+      unlockedThemes: ["vscode", "light"],
+      stars: {},
+      maxStage: 1,
+      currentStage: 1,
+      sound: true
+    };
+
+    let state = null;
+    let highlightedCmd = null;
+    let camStream = null;
+    let draftAvatar = { picType: "avatar", picVal: "bot1" };
+
+    function loadProfile() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) profile = { ...profile, ...JSON.parse(raw) };
+      } catch (e) {}
+    }
+
+    function saveProfile() {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(profile)); } catch (e) {}
+    }
+
+    function startStage(id) {
+      const def = STAGES.find(s => s.id === id) || STAGES[0];
+      profile.currentStage = def.id;
+      saveProfile();
+      highlightedCmd = null;
+
+      state = {
+        def,
+        inited: !def.needInit,
+        working: JSON.parse(JSON.stringify(def.files)),
+        nextWave: def.nextWave ? JSON.parse(JSON.stringify(def.nextWave)) : null,
+        staging: [],
+        stashed: [],
+        branch: "main",
+        branchExists: false,
+        branchCommitted: false,
+        merged: !def.needBranchWork,
+        pulled: !def.needPull,
+        stashCompleted: !def.needStashCycle,
+        inspected: !def.requireInspect,
+        brokenCommit: Boolean(def.brokenCommit),
+        softCommit: Boolean(def.softCommit),
+        lostCommit: Boolean(def.lostCommit),
+        hasCherryFix: Boolean(def.hasCherryFix),
+        tagged: false,
+        amended: false,
+        commits: def.needInit ? [] : ["c1: base"],
+        branchCommits: [],
+        pushed: false,
+        steps: 0,
+        errorStreak: 0
+      };
+
+      if (def.brokenCommit) state.commits.push("c2: BUG ⚠️");
+      if (def.softCommit) state.commits.push("c2: rascunho");
+
+      document.getElementById("missionTitle").textContent = `${def.title} • Meta: ${def.par} jogadas`;
+      document.getElementById("missionGoal").textContent = def.goal;
+      setGuide("🤖", "Leia a missão, observe as 3 colunas e clique no comando Git certo lá embaixo.", "normal");
+      setTerminal("$ pronto", "Aguardando seu próximo comando...");
+      renderAll();
+    }
+
+    /* ==========================================================================
+       PRÓXIMO PASSO CORRETO (USADO PELAS DICAS E PELA AJUDA AUTOMÁTICA)
+       ========================================================================== */
+    function nextCommand() {
+      const s = state, d = s.def;
+      if (!s.inited) return "init";
+      if (s.lostCommit) return "reflog";
+      if (s.brokenCommit) return d.hint === "reset_hard" ? "reset_hard" : "revert";
+      if (s.softCommit) return "reset_soft";
+      if (s.hasCherryFix) return "cherry";
+      if (s.working.some(f => f.type === "err")) return "restore";
+      if (!s.inspected) return d.requireInspect;
+      if (!s.stashCompleted) {
+        if (s.stashed.length === 0) return "stash";
+        if (!s.pulled) return "pull";
+        if (d.needBranchWork && s.branch !== "nova-tela") return s.branchExists ? "switch_b" : "switch_new";
+        return "stash_pop";
+      }
+      if (!s.pulled) return "pull";
+      if (s.stashed.length) return "stash_pop";
+      if (d.needBranchWork && !s.merged) {
+        if (!s.branchCommitted || s.working.length || s.staging.length) {
+          if (s.branch !== "nova-tela") return s.branchExists ? "switch_b" : (d.hint === "branch" ? "branch" : "switch_new");
+          if (s.working.length) return "add";
+          if (s.staging.length) return "commit";
+        }
+        return s.branch !== "main" ? "switch_m" : "merge";
+      }
+      if (s.working.length) return "add";
+      if (s.staging.length) return d.preferAmend ? "amend" : "commit";
+      if (s.branchCommits.length && !s.merged) return s.branch !== "main" ? "switch_m" : "merge";
+      if (s.branch !== "main") return "switch_m";
+      if (d.needTag && !s.tagged) return "tag";
+      return "push";
+    }
+
+    function updateNextStep() {
+      const box = document.getElementById("nextStep");
+      // Mostra o próximo passo só depois de pedir dica ou errar, para não entregar a resposta de cara.
+      if (state.showNext && !state.pushed) {
+        document.getElementById("nextStepCmd").textContent = COMMANDS[nextCommand()].code;
+        box.hidden = false;
+      } else {
+        box.hidden = true;
+      }
+    }
+
+    /* ==========================================================================
+       LÓGICA CLARA DE CADA COMANDO GIT
+       ========================================================================== */
+    function runCommand(key) {
+      const cmd = COMMANDS[key];
+      if (!cmd || !state) return;
+      highlightedCmd = null;
+
+      // Verifica se git init já foi feito
+      if (!state.inited && key !== "init") {
+        rejectAction(cmd.code, "Este projeto ainda não usa Git! Clique primeiro em 'git init'.");
+        return;
+      }
+
+      let ok = true;
+      let guideMsg = "";
+      let termMsg = "";
+
+      switch (key) {
+        case "init":
+          if (state.inited) {
+            guideMsg = "O repositório Git já está iniciado!";
+          } else {
+            state.inited = true;
+            state.commits = ["c0: início"];
+            Sound.step();
+            guideMsg = "Ótimo! Repositório .git criado. Agora prepare os arquivos com 'git add .'.";
+            termMsg = "Initialized empty Git repository in .git/";
+          }
+          break;
+
+        case "status":
+          state.inspected = true;
+          Sound.step();
+          guideMsg = `Sua Pasta tem ${state.working.length} arquivo(s) e Preparação tem ${state.staging.length}.`;
+          termMsg = `On branch ${state.branch} — ${state.working.length} unstaged, ${state.staging.length} staged`;
+          break;
+
+        case "diff":
+          state.inspected = true;
+          Sound.step();
+          guideMsg = "Diferenças revisadas! Se o arquivo estiver certo, leve-o para Preparação com 'git add .'.";
+          termMsg = "diff --git a/file b/file (+12 lines, -2 lines)";
+          break;
+
+        case "restore": {
+          const errCount = state.working.filter(f => f.type === "err").length;
+          if (errCount === 0) {
+            ok = false;
+            guideMsg = "Não há arquivos com erro na Sua Pasta para descartar.";
+          } else {
+            state.working = state.working.filter(f => f.type !== "err");
+            Sound.step();
+            guideMsg = "Arquivo com erro descartado! Sua Pasta está limpa.";
+            termMsg = "Restored working tree files (errors discarded)";
+          }
+          break;
+        }
+
+        case "add": {
+          if (state.working.some(f => f.type === "err")) {
+            ok = false;
+            guideMsg = "Há um arquivo com ERRO na Sua Pasta! Use 'git restore .' antes de preparar.";
+            break;
+          }
+          if (state.working.length === 0) {
+            ok = false;
+            guideMsg = "Sua Pasta não tem arquivos novos para mover para a Preparação.";
+            break;
+          }
+          state.staging.push(...state.working);
+          state.working = [];
+          Sound.step();
+          flashZone("zoneStaging");
+          guideMsg = "Arquivos movidos para a Preparação! Agora salve no Histórico com 'git commit'.";
+          termMsg = `Staged ${state.staging.length} file(s) -> ready to commit`;
+          break;
+        }
+
+        case "commit":
+        case "amend": {
+          if (state.staging.length === 0) {
+            ok = false;
+            guideMsg = "A área de Preparação está vazia! Use 'git add .' antes de fazer commit.";
+            break;
+          }
+          if (!state.stashCompleted) {
+            ok = false;
+            guideMsg = state.stashed.length
+              ? "Seu arquivo está na gaveta! Recupere com 'git stash pop' antes do commit."
+              : "Antes de salvar, guarde o rascunho na gaveta com 'git stash'.";
+            break;
+          }
+          if (state.def.needBranchWork && state.branch === "main" && !state.branchCommitted) {
+            ok = false;
+            guideMsg = "Nesta fase o trabalho é feito na branch! Entre em 'nova-tela' antes de fazer o commit.";
+            break;
+          }
+          if (key === "commit" && state.def.preferAmend) {
+            ok = false;
+            guideMsg = "Nesta fase não crie um commit novo: junte ao anterior com 'git commit --amend'.";
+            break;
+          }
+          if (state.branch === "nova-tela") {
+            const list = state.branchCommits;
+            if (key === "amend" && list.length > 0) list[list.length - 1] = list[list.length - 1].replace(/ ✎$/, "") + " ✎";
+            else list.push(`b${list.length + 1}`);
+            if (key === "amend") state.amended = true;
+            state.branchCommitted = true;
+            state.merged = false; // novo trabalho na branch precisa de merge de novo
+          } else if (key === "amend" && state.commits.length > 0) {
+            const last = state.commits.length - 1;
+            state.commits[last] = state.commits[last].replace(/ ✎$/, "") + " ✎";
+            state.amended = true;
+          } else {
+            state.commits.push(commitLabel(state.branch));
+          }
+          state.staging = [];
+
+          // Se a fase tiver segunda onda de arquivos
+          if (state.nextWave) {
+            state.working.push(...state.nextWave);
+            state.nextWave = null;
+          }
+
+          Sound.commit();
+          flashZone("zoneHistory");
+          guideMsg = state.branch === "nova-tela"
+            ? "Commit salvo na 'nova-tela'! Agora volte para 'main' com 'git switch main'."
+            : "Commit salvo na linha do tempo! Se já terminou tudo, envie com 'git push'.";
+          termMsg = `[${state.branch}] Commit criado com sucesso!`;
+          break;
+        }
+
+        case "branch":
+          if (state.branchExists) {
+            ok = false;
+            guideMsg = "A branch 'nova-tela' já existe! Entre nela com 'git switch nova-tela'.";
+            break;
+          }
+          state.branchExists = true;
+          Sound.step();
+          guideMsg = "Branch 'nova-tela' criada! Agora entre nela com 'git switch nova-tela'.";
+          termMsg = "Created branch 'nova-tela'";
+          break;
+
+        case "switch_new":
+          if (state.branchExists) {
+            ok = false;
+            guideMsg = "A branch 'nova-tela' já existe! Para entrar nela use 'git switch nova-tela'.";
+            break;
+          }
+          state.branchExists = true;
+          state.branch = "nova-tela";
+          Sound.step();
+          guideMsg = "Você criou e entrou na branch 'nova-tela'! Agora prepare e commite o arquivo.";
+          termMsg = "Switched to a new branch 'nova-tela'";
+          break;
+
+        case "switch_b":
+          if (!state.branchExists) {
+            ok = false;
+            guideMsg = "A branch 'nova-tela' ainda não existe! Crie com 'git branch nova-tela' ou 'git switch -c nova-tela'.";
+          } else {
+            state.branch = "nova-tela";
+            Sound.step();
+            guideMsg = "Você mudou para a branch 'nova-tela'!";
+            termMsg = "Switched to branch 'nova-tela'";
+          }
+          break;
+
+        case "switch_m":
+          state.branch = "main";
+          Sound.step();
+          guideMsg = state.branchCommitted
+            ? "De volta à 'main'! Agora traga o trabalho da outra branch com 'git merge nova-tela'."
+            : "Você voltou para a branch 'main'.";
+          termMsg = "Switched to branch 'main'";
+          break;
+
+        case "merge":
+          if (state.branch !== "main") {
+            ok = false;
+            guideMsg = "Volte primeiro para a branch 'main' (git switch main) antes de fazer merge.";
+          } else if (!state.branchCommitted) {
+            ok = false;
+            guideMsg = "Faça o commit na branch 'nova-tela' antes de unir na 'main'.";
+          } else if (state.merged) {
+            Sound.step();
+            guideMsg = "A 'main' já tem tudo da 'nova-tela'. Nada novo para unir.";
+            termMsg = "Already up to date.";
+          } else {
+            state.merged = true;
+            state.commits.push(commitLabel("merge"));
+            Sound.commit();
+            flashZone("zoneHistory");
+            guideMsg = "Merge concluído! O código da 'nova-tela' agora está na 'main'. Pode dar 'git push'!";
+            termMsg = "Merge made by the 'ort' strategy.";
+          }
+          break;
+
+        case "stash":
+          if (state.working.length === 0 && state.staging.length === 0) {
+            ok = false;
+            guideMsg = "Não há arquivos na Sua Pasta nem na Preparação para guardar na gaveta Stash.";
+          } else {
+            // como no git real, o stash guarda a pasta E a preparação
+            state.stashed.push(...state.working, ...state.staging);
+            state.working = [];
+            state.staging = [];
+            Sound.step();
+            guideMsg = "Rascunho guardado na gaveta Stash! Sua Pasta ficou livre.";
+            termMsg = "Saved working directory state to stash@{0}";
+          }
+          break;
+
+        case "stash_pop":
+          if (state.stashed.length === 0) {
+            ok = false;
+            guideMsg = "A gaveta Stash está vazia!";
+          } else {
+            state.working.push(...state.stashed);
+            state.stashed = [];
+            state.stashCompleted = true;
+            Sound.step();
+            guideMsg = "Arquivos recuperados do Stash de volta para Sua Pasta!";
+            termMsg = "Dropped refs/stash@{0} and restored files";
+          }
+          break;
+
+        case "pull":
+          if (!state.pulled) {
+            state.pulled = true;
+            state.commits.push(commitLabel("origin"));
+            Sound.commit();
+            flashZone("zoneHistory");
+            guideMsg = "Novidades baixadas do GitHub! Seu histórico está sincronizado.";
+            termMsg = "Updating... Fast-forward (origin/main synced)";
+          } else {
+            Sound.step();
+            guideMsg = "Seu repositório já está atualizado com o GitHub.";
+            termMsg = "Already up to date.";
+          }
+          break;
+
+        case "revert":
+          if (!state.brokenCommit) {
+            ok = false;
+            guideMsg = "Não há commit quebrado para reverter.";
+          } else {
+            state.brokenCommit = false;
+            state.commits.push(commitLabel("revert"));
+            Sound.commit();
+            flashZone("zoneHistory");
+            guideMsg = "Commit quebrado anulado com segurança! Agora você pode enviar com 'git push'.";
+            termMsg = "[main] Revert 'BUG' — safe undo commit created";
+          }
+          break;
+
+        case "reset_hard":
+          if (!state.brokenCommit && !state.softCommit) {
+            ok = false;
+            guideMsg = "Não há commit quebrado para apagar. Cuidado: reset --hard apaga trabalho!";
+          } else {
+            state.brokenCommit = false;
+            state.softCommit = false;
+            state.commits.pop();
+            Sound.step();
+            flashZone("zoneHistory");
+            guideMsg = "Último commit apagado do histórico! Continue o fluxo.";
+            termMsg = "HEAD is now at previous clean commit";
+          }
+          break;
+
+        case "reset_soft":
+          if (!state.softCommit) {
+            ok = false;
+            guideMsg = "Nenhum commit recente para devolver à Preparação.";
+          } else {
+            state.softCommit = false;
+            state.commits.pop();
+            state.staging.push({ name: "ajuste.js", type: "mod" });
+            Sound.step();
+            flashZone("zoneStaging");
+            guideMsg = "Commit desfeito e arquivo devolvido pronto na Preparação! Salve novamente com 'git commit'.";
+            termMsg = "Soft reset: changes kept in Staging Area";
+          }
+          break;
+
+        case "cherry":
+          if (!state.hasCherryFix) {
+            ok = false;
+            guideMsg = "Não há commit 'fix' pendente para copiar.";
+          } else {
+            state.hasCherryFix = false;
+            state.commits.push(commitLabel("fix 🍒"));
+            Sound.commit();
+            flashZone("zoneHistory");
+            guideMsg = "Commit 'fix' copiado para sua linha principal! Agora pode enviar com 'git push'.";
+            termMsg = "[main] Cherry-picked commit 'fix'";
+          }
+          break;
+
+        case "tag":
+          state.tagged = true;
+          Sound.step();
+          guideMsg = "Etiqueta 'v1.0' marcada no commit atual!";
+          termMsg = "Created tag 'v1.0'";
+          break;
+
+        case "reflog":
+          if (!state.lostCommit) {
+            ok = false;
+            guideMsg = "Nenhum commit perdido para resgatar.";
+          } else {
+            state.lostCommit = false;
+            state.commits.push(commitLabel("resgatado"));
+            Sound.commit();
+            flashZone("zoneHistory");
+            guideMsg = "Commit perdido resgatado pelo Reflog! Agora conclua a missão.";
+            termMsg = "HEAD@{1} restored to current branch";
+          }
+          break;
+
+        case "push": {
+          if (state.brokenCommit) {
+            ok = false;
+            guideMsg = "Não envie um commit quebrado para o GitHub! Use 'git revert HEAD' ou 'git reset --hard HEAD~1' primeiro.";
+            break;
+          }
+          if (state.lostCommit) {
+            ok = false;
+            guideMsg = "Resgate o commit perdido com 'git reflog' antes de enviar!";
+            break;
+          }
+          if (state.softCommit) {
+            ok = false;
+            guideMsg = "Primeiro devolva o commit para a Preparação com 'git reset --soft HEAD~1' e salve de novo!";
+            break;
+          }
+          if (state.hasCherryFix) {
+            ok = false;
+            guideMsg = "Copie o commit 'fix' com 'git cherry-pick fix' antes do push!";
+            break;
+          }
+          if (!state.pulled) {
+            ok = false;
+            guideMsg = "Baixe primeiro as novidades do GitHub com 'git pull'!";
+            break;
+          }
+          if (!state.stashCompleted) {
+            ok = false;
+            guideMsg = "Recupere o arquivo da gaveta com 'git stash pop' e faça commit antes do push!";
+            break;
+          }
+          if (state.stashed.length > 0) {
+            ok = false;
+            guideMsg = "Você tem arquivos guardados na gaveta Stash! Recupere com 'git stash pop' e faça commit antes do push.";
+            break;
+          }
+          if (state.working.length > 0 || state.staging.length > 0 || state.nextWave) {
+            ok = false;
+            guideMsg = "Ainda existem arquivos pendentes na Pasta ou na Preparação! Prepare e faça commit antes do push.";
+            break;
+          }
+          if (state.branch !== "main" || !state.merged) {
+            ok = false;
+            guideMsg = "Volte para a 'main' e una sua branch com 'git merge nova-tela' antes de enviar ao GitHub!";
+            break;
+          }
+          if (state.def.preferAmend && !state.amended) {
+            ok = false;
+            guideMsg = "Junte o arquivo ao commit anterior com 'git commit --amend' antes do push!";
+            break;
+          }
+          if (state.def.needTag && !state.tagged) {
+            ok = false;
+            guideMsg = "Marque a versão oficial com 'git tag v1.0' antes de fazer o push!";
+            break;
+          }
+          if (!state.inspected) {
+            ok = false;
+            guideMsg = `Use 'git ${state.def.requireInspect}' para revisar antes de enviar!`;
+            break;
+          }
+
+          state.steps++;
+          state.pushed = true;
+          renderAll();
+          completeStage();
+          return;
+        }
+      }
+
+      if (!ok) {
+        rejectAction(cmd.code, guideMsg);
+        return;
+      }
+
+      state.steps++;
+      state.errorStreak = 0;
+      setGuide("🤖", guideMsg, "ok");
+      setTerminal(`$ ${cmd.code}`, termMsg || "Comando executado.");
+      renderAll();
+    }
+
+    // Numeração sequencial: c0, c1, c2... continua a partir do último commit
+    function commitLabel(text) {
+      const last = state.commits[state.commits.length - 1];
+      const n = last ? parseInt(last.slice(1), 10) + 1 : 0;
+      return `c${n}: ${text}`;
+    }
+
+    function rejectAction(code, reason) {
+      Sound.err();
+      setTerminal(`$ ${code}`, "Ação bloqueada: verifique o estado das 3 colunas.");
+      state.errorStreak++;
+      // Ajuda automática grátis: depois de 2 erros seguidos, destaca o botão certo.
+      if (state.errorStreak >= 2) {
+        highlightedCmd = nextCommand();
+        state.showNext = true;
+        setGuide("⚠️", `${reason} Ajuda: clique no botão dourado (${COMMANDS[highlightedCmd].code}).`, "err");
+        renderButtons();
+        updateNextStep();
+      } else {
+        setGuide("⚠️", reason, "err");
+      }
+    }
+
+    function flashZone(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.classList.add("highlight");
+      setTimeout(() => el.classList.remove("highlight"), 450);
+    }
+
+    /* ==========================================================================
+       VITÓRIA & AVANÇO AUTOMÁTICO DE FASE E NÍVEL
+       ========================================================================== */
+    function completeStage() {
+      Sound.win();
+      const par = state.def.par;
+      const stars = state.steps <= par ? 3 : (state.steps <= par + 2 ? 2 : 1);
+      const prev = profile.stars[state.def.id] || 0;
+      const isFirst = prev === 0;
+      if (stars > prev) profile.stars[state.def.id] = stars;
+
+      const earned = isFirst ? 20 + stars * 10 : 10;
+      profile.coins += earned;
+
+      const nextId = state.def.id < 30 ? state.def.id + 1 : 30;
+      if (nextId > profile.maxStage) profile.maxStage = nextId;
+      saveProfile();
+      updateHeader();
+
+      const nextDef = STAGES.find(s => s.id === nextId);
+      const lvlUp = isFirst && nextDef && nextDef.lvl > state.def.lvl;
+      const badge = document.getElementById("vicLevelUp");
+      if (lvlUp) {
+        badge.style.display = "inline-block";
+        badge.textContent = `🎉 VOCÊ AVANÇOU PARA O NÍVEL ${nextDef.lvl}!`;
+      } else {
+        badge.style.display = "none";
+      }
+
+      document.getElementById("vicStars").textContent = "⭐".repeat(stars) + "☆".repeat(3 - stars);
+      document.getElementById("vicTitle").textContent = state.def.id === 30 ? "🏆 Você Dominou o Git!" : `Fase ${state.def.id} Concluída!`;
+      document.getElementById("vicSummary").textContent = `Concluída em ${state.steps} jogadas (Meta: ${par}).`;
+      document.getElementById("vicCoins").textContent = `+${earned} CodeCoins ganhas!`;
+      document.getElementById("btnVicNext").textContent = state.def.id === 30 ? "Recomeçar da Fase 1 ↺" : "Próxima Fase ➔";
+      document.getElementById("victoryModal").classList.add("open");
+    }
+
+    /* ==========================================================================
+       RENDERIZAÇÃO DAS 3 ZONAS, LINHA DO TEMPO SVG E BOTÕES
+       ========================================================================== */
+    function renderAll() {
+      updateHeader();
+      renderZones();
+      renderTimeline();
+      renderButtons();
+      updateNextStep();
+      document.getElementById("stepsLabel").textContent = `Jogadas: ${state.steps} • Meta: ${state.def.par}`;
+    }
+
+    function renderZones() {
+      // Zona 1: Sua Pasta (Working Dir)
+      const wBody = document.getElementById("workingBody");
+      let wHtml = "";
+      if (state.working.length === 0) {
+        wHtml = `<div class="empty-slot">${state.inited ? "Nenhum arquivo pendente na pasta." : "Clique em 'git init' para começar."}</div>`;
+      } else {
+        wHtml = state.working.map(f => {
+          const lbl = f.type === "err" ? "com erro" : (f.type === "new" ? "novo" : "modificado");
+          return `
+            <div class="file-card ${f.type}">
+              <span class="file-name">📄 ${f.name}</span>
+              <span class="file-badge badge-${f.type}">${lbl}</span>
+            </div>
+          `;
+        }).join("");
+      }
+      if (state.stashed.length > 0) {
+        wHtml += `<div class="stash-box"><span>🗄️ Gaveta Stash: ${state.stashed.length} arquivo(s)</span><span>git stash pop</span></div>`;
+      }
+      wBody.innerHTML = wHtml;
+
+      // Zona 2: Preparação (Staging Area)
+      const sBody = document.getElementById("stagingBody");
+      if (state.staging.length === 0) {
+        sBody.innerHTML = `<div class="empty-slot">Vazia — use <strong>git add .</strong> para trazer arquivos aqui.</div>`;
+      } else {
+        sBody.innerHTML = state.staging.map(f => `
+          <div class="file-card stage">
+            <span class="file-name">✅ ${f.name}</span>
+            <span class="file-badge badge-stage">pronto</span>
+          </div>
+        `).join("");
+      }
+
+      // Zona 3 header
+      document.getElementById("branchIndicator").textContent = `branch: ${state.branch}${state.tagged ? " • 🏷️ v1.0" : ""}`;
+    }
+
+    function renderTimeline() {
+      const svg = document.getElementById("timelineSvg");
+      const cs = getComputedStyle(document.documentElement);
+      const accent = cs.getPropertyValue("--accent").trim();
+      const ok = cs.getPropertyValue("--ok").trim();
+      const warn = cs.getPropertyValue("--warn").trim();
+      const danger = cs.getPropertyValue("--danger").trim();
+      const branchCol = cs.getPropertyValue("--branch").trim();
+      const dim = cs.getPropertyValue("--text-dim").trim();
+
+      let out = "";
+
+      // Linha principal (main)
+      out += `<line x1="36" y1="95" x2="395" y2="95" stroke="${accent}" stroke-width="3" stroke-opacity="0.35" />`;
+
+      const maxShow = state.commits.slice(-4);
+      const short = t => (t.length > 12 ? t.slice(0, 11) + "…" : t);
+      const bc = state.branchExists ? state.branchCommits.slice(-3) : [];
+      const showMerge = state.branchExists && state.merged && bc.length > 0;
+      const forkIdx = Math.max(0, maxShow.length - (showMerge ? 2 : 1));
+      const forkX = 55 + forkIdx * 78;
+      const bx = i => forkX + 70 + i * 58;
+      const branchTipX = bc.length ? bx(bc.length - 1) : bx(0);
+      // o nó de merge fica sempre à direita da ponta da branch
+      const mainX = idx => (showMerge && idx === maxShow.length - 1) ? Math.min(branchTipX + 62, 360) : 55 + idx * 78;
+
+      // Se existir branch paralela 'nova-tela': commits dela ficam na linha de cima
+      if (state.branchExists) {
+        out += `<path d="M ${forkX} 95 C ${forkX + 25} 42, ${bx(0) - 35} 42, ${bx(0)} 42 L ${branchTipX} 42" fill="none" stroke="${branchCol}" stroke-width="2.5" stroke-dasharray="4 3" />`;
+        if (showMerge) {
+          const mx = mainX(maxShow.length - 1);
+          out += `<path d="M ${branchTipX} 42 C ${branchTipX + 30} 42, ${mx - 20} 95, ${mx} 95" fill="none" stroke="${branchCol}" stroke-width="2.5" stroke-dasharray="4 3" />`;
+        }
+        if (bc.length === 0) {
+          out += `<circle cx="${bx(0)}" cy="42" r="9" fill="none" stroke="${branchCol}" stroke-width="2.5" />`;
+        }
+        bc.forEach((label, i) => {
+          out += `
+            <circle cx="${bx(i)}" cy="42" r="10" fill="${branchCol}" stroke="#fff" stroke-width="2" />
+            <text x="${bx(i)}" y="66" text-anchor="middle" fill="${dim}" font-family="JetBrains Mono, monospace" font-size="8.5" font-weight="700">${short(label)}</text>
+          `;
+        });
+        out += `<text x="${showMerge ? bx(0) : branchTipX + 16}" y="${showMerge ? 24 : 46}" text-anchor="${showMerge ? "middle" : "start"}" fill="${branchCol}" font-family="JetBrains Mono, monospace" font-size="9.5" font-weight="800">nova-tela</text>`;
+      }
+
+      // Nós de Commit na main
+      maxShow.forEach((label, idx) => {
+        const cx = mainX(idx);
+        const isBug = label.includes("BUG");
+        const col = isBug ? danger : ok;
+        out += `
+          <circle cx="${cx}" cy="95" r="12" fill="${col}" stroke="#fff" stroke-width="2" />
+          <text x="${cx}" y="122" text-anchor="middle" fill="${dim}" font-family="JetBrains Mono, monospace" font-size="9" font-weight="700">${short(label)}</text>
+        `;
+      });
+      if (state.commits.length === 0) {
+        out += `<text x="200" y="99" text-anchor="middle" fill="${dim}" font-family="Inter, sans-serif" font-size="10.5" font-weight="700">Sem histórico: falta o git init</text>`;
+      }
+
+      // Alerta visual se houver commit perdido (reflog) ou cherry-pick disponível
+      if (state.lostCommit) {
+        out += `<text x="225" y="34" text-anchor="middle" fill="${warn}" font-family="JetBrains Mono, monospace" font-size="10" font-weight="800">⚠️ Commit apagado no Reflog</text>`;
+      }
+      if (state.hasCherryFix) {
+        out += `<text x="225" y="34" text-anchor="middle" fill="${branchCol}" font-family="JetBrains Mono, monospace" font-size="10" font-weight="800">🍒 Commit 'fix' disponível</text>`;
+      }
+
+      // Bandeira GitHub (origin) à direita
+      const ghColor = state.pushed ? ok : warn;
+      out += `
+        <g transform="translate(415, 95)">
+          <rect x="-26" y="-22" width="52" height="44" rx="10" fill="${ghColor}" fill-opacity="0.18" stroke="${ghColor}" stroke-width="2" />
+          <text x="0" y="-3" text-anchor="middle" font-size="16">🏁</text>
+          <text x="0" y="13" text-anchor="middle" fill="${ghColor}" font-family="JetBrains Mono, monospace" font-size="9" font-weight="800">GitHub</text>
+        </g>
+      `;
+
+      // Personagem Guia posicionado no Commit Atual
+      let gx = 55;
+      let gy = 65;
+      if (state.pushed) {
+        gx = 415; gy = 55;
+      } else if (state.branch === "nova-tela") {
+        gx = branchTipX; gy = 18;
+      } else if (maxShow.length > 0) {
+        gx = mainX(maxShow.length - 1);
+        gy = 64;
+      }
+
+      out += `
+        <g transform="translate(${gx}, ${gy})"><g class="guide-bob">
+          <rect x="-20" y="-13" width="40" height="16" rx="8" fill="${accent}" />
+          <text x="0" y="-2" text-anchor="middle" fill="#fff" font-family="JetBrains Mono, monospace" font-size="8.5" font-weight="800">VOCÊ</text>
+          <polygon points="-4,3 4,3 0,9" fill="${accent}" />
+        </g></g>
+      `;
+
+      svg.innerHTML = out;
+    }
+
+    function renderButtons() {
+      const deck = LEVEL_DECKS.find(d => d.level === state.def.lvl) || LEVEL_DECKS[0];
+      document.getElementById("deckLabel").textContent = `${deck.title.toUpperCase()} — CLIQUE NO COMANDO:`;
+      const grid = document.getElementById("cmdGrid");
+
+      grid.innerHTML = deck.cmds.map(k => {
+        const c = COMMANDS[k];
+        const cls = highlightedCmd === k ? "hinted" : "";
+        return `
+          <button type="button" class="cmd-btn ${cls}" data-cmd="${k}">
+            <span class="cmd-title">$ ${c.code}</span>
+            <span class="cmd-sub">${c.short}</span>
+          </button>
+        `;
+      }).join("");
+
+      grid.querySelectorAll(".cmd-btn").forEach(btn => {
+        btn.addEventListener("click", () => runCommand(btn.dataset.cmd));
+      });
+    }
+
+    function setGuide(icon, text, kind = "normal") {
+      const box = document.getElementById("guideBubble");
+      box.className = "guide-bubble" + (kind === "err" ? " err" : kind === "ok" ? " ok" : "");
+      document.getElementById("guideIcon").textContent = icon;
+      document.getElementById("guideText").textContent = text;
+    }
+
+    function setTerminal(cmd, out) {
+      document.getElementById("termCmd").textContent = cmd;
+      document.getElementById("termOut").textContent = out;
+    }
+
+    function updateHeader() {
+      document.getElementById("hudName").textContent = profile.name;
+      const lvlNames = ["", "Nível 1 • Fácil", "Nível 2 • Médio", "Nível 3 • Difícil"];
+      const def = STAGES.find(s => s.id === profile.currentStage) || STAGES[0];
+      document.getElementById("hudLevelBadge").textContent = lvlNames[def.lvl];
+      document.getElementById("hudStage").textContent = profile.currentStage;
+      document.getElementById("hudCoins").textContent = profile.coins;
+      document.getElementById("hudStars").textContent = Object.values(profile.stars).reduce((a, b) => a + b, 0);
+
+      const av = document.getElementById("hudAvatar");
+      if (profile.picType === "image") {
+        av.innerHTML = `<img src="${profile.picVal}" alt="Foto" />`;
+      } else {
+        const item = AVATARS.find(a => a.id === profile.picVal) || AVATARS[0];
+        av.innerHTML = `<div style="width:24px;height:24px;">${item.svg}</div>`;
+      }
+    }
+
+    /* ==========================================================================
+       CONTROLES, PASSAPORTE LOCAL, MAPA, TEMAS E GUIA RÁPIDO
+       ========================================================================== */
+    document.getElementById("btnHint1").addEventListener("click", () => {
+      if (state.pushed) return;
+      Sound.step();
+      const c = COMMANDS[nextCommand()];
+      state.showNext = true;
+      updateNextStep();
+      setGuide("💡", `Próximo passo: ${c.code}. ${c.desc}`, "normal");
+    });
+
+    document.getElementById("btnHint2").addEventListener("click", () => {
+      if (state.pushed) return;
+      const next = nextCommand();
+      if (highlightedCmd === next) {
+        setGuide("🎯", `O botão ${COMMANDS[next].code} já está destacado em dourado.`, "ok");
+        return;
+      }
+      if (profile.coins < 15) {
+        Sound.err();
+        setGuide("🪙", "Você precisa de 15 CodeCoins para destacar o botão. Use a 💡 Dica grátis!", "err");
+        return;
+      }
+      profile.coins -= 15;
+      saveProfile();
+      updateHeader();
+      highlightedCmd = next;
+      renderButtons();
+      Sound.win();
+      setGuide("🎯", `Botão destacado em dourado: ${COMMANDS[highlightedCmd].code}`, "ok");
+      document.querySelector(".cmd-btn.hinted")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+
+    document.getElementById("btnRestart").addEventListener("click", () => {
+      Sound.step();
+      startStage(state.def.id);
+    });
+
+    document.getElementById("btnAudio").addEventListener("click", e => {
+      profile.sound = Sound.toggle();
+      saveProfile();
+      e.currentTarget.textContent = profile.sound ? "🔊" : "🔇";
+    });
+
+    function applyTheme(id) {
+      profile.theme = id;
+      document.documentElement.setAttribute("data-theme", id);
+      saveProfile();
+      if (state) renderTimeline();
+    }
+
+    // Passaporte Local
+    function openPassport(firstTime = false) {
+      draftAvatar = { picType: profile.picType, picVal: profile.picVal };
+      document.getElementById("inpPlayerName").value = profile.created ? profile.name : "";
+      document.getElementById("btnClosePassport").style.display = firstTime ? "none" : "block";
+      renderAvatarGrid();
+      refreshPassportPreview();
+      document.getElementById("passportModal").classList.add("open");
+    }
+
+    function renderAvatarGrid() {
+      const grid = document.getElementById("avatarChoiceGrid");
+      grid.innerHTML = AVATARS.map(a => `
+        <button type="button" class="av-choice ${draftAvatar.picType === 'avatar' && draftAvatar.picVal === a.id ? 'selected' : ''}" data-av="${a.id}">
+          <div style="width:26px;height:26px;">${a.svg}</div>
+          <span>${a.name}</span>
+        </button>
+      `).join("");
+      grid.querySelectorAll(".av-choice").forEach(btn => {
+        btn.addEventListener("click", () => {
+          draftAvatar = { picType: "avatar", picVal: btn.dataset.av };
+          renderAvatarGrid();
+          refreshPassportPreview();
+          Sound.step();
+        });
+      });
+    }
+
+    function refreshPassportPreview() {
+      const box = document.getElementById("passportPreview");
+      if (draftAvatar.picType === "image") {
+        box.innerHTML = `<img src="${draftAvatar.picVal}" alt="Preview" />`;
+      } else {
+        const item = AVATARS.find(a => a.id === draftAvatar.picVal) || AVATARS[0];
+        box.innerHTML = `<div style="width:40px;height:40px;">${item.svg}</div>`;
+      }
+    }
+
+    document.getElementById("btnCamOpen").addEventListener("click", async () => {
+      try {
+        camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: 240, height: 240 } });
+        document.getElementById("camVideo").srcObject = camStream;
+        document.getElementById("camBox").classList.add("open");
+      } catch (e) {
+        setGuide("📷", "Câmera indisponível neste navegador. Escolha um ícone ou foto da galeria.", "err");
+      }
+    });
+
+    document.getElementById("btnCamSnap").addEventListener("click", () => {
+      const v = document.getElementById("camVideo");
+      const c = document.createElement("canvas");
+      c.width = 128; c.height = 128;
+      const ctx = c.getContext("2d");
+      ctx.translate(128, 0); ctx.scale(-1, 1);
+      ctx.drawImage(v, 0, 0, 128, 128);
+      draftAvatar = { picType: "image", picVal: c.toDataURL("image/jpeg", 0.8) };
+      refreshPassportPreview();
+      stopCamera();
+      Sound.step();
+    });
+
+    function stopCamera() {
+      if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+      document.getElementById("camBox").classList.remove("open");
+    }
+    document.getElementById("btnCamStop").addEventListener("click", stopCamera);
+
+    document.getElementById("inpGalleryFile").addEventListener("change", e => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const img = new Image();
+        img.onload = () => {
+          const c = document.createElement("canvas");
+          c.width = 128; c.height = 128;
+          const ctx = c.getContext("2d");
+          const size = Math.min(img.width, img.height);
+          ctx.drawImage(img, (img.width - size) / 2, (img.height - size) / 2, size, size, 0, 0, 128, 128);
+          draftAvatar = { picType: "image", picVal: c.toDataURL("image/jpeg", 0.82) };
+          refreshPassportPreview();
+          Sound.step();
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    document.getElementById("btnSavePassport").addEventListener("click", () => {
+      profile.name = document.getElementById("inpPlayerName").value.trim() || "Dev Aprendiz";
+      profile.picType = draftAvatar.picType;
+      profile.picVal = draftAvatar.picVal;
+      profile.created = true;
+      saveProfile();
+      updateHeader();
+      stopCamera();
+      document.getElementById("passportModal").classList.remove("open");
+      Sound.win();
+    });
+
+    document.getElementById("btnOpenProfile").addEventListener("click", () => openPassport(false));
+    document.getElementById("btnClosePassport").addEventListener("click", () => { stopCamera(); document.getElementById("passportModal").classList.remove("open"); });
+
+    // Mapa das 30 Fases
+    document.getElementById("btnOpenStages").addEventListener("click", () => {
+      const body = document.getElementById("stagesListBody");
+      body.innerHTML = LEVEL_DECKS.map(d => {
+        const list = STAGES.filter(s => s.lvl === d.level);
+        return `
+          <div>
+            <div style="font-size:0.8rem; font-weight:800; color:var(--accent); margin-bottom:6px;">${d.title}</div>
+            <div class="stages-grid">
+              ${list.map(s => {
+                const st = profile.stars[s.id] || 0;
+                const locked = s.id > profile.maxStage;
+                return `
+                  <button type="button" class="stage-cell ${s.id === profile.currentStage ? 'active' : ''} ${st > 0 ? 'done' : ''} ${locked ? 'locked' : ''}" data-st="${s.id}" ${locked ? 'aria-disabled="true"' : ''} title="${locked ? 'Conclua a fase anterior para desbloquear' : s.title}">
+                    <div>${s.id}</div>
+                    <div style="font-size:0.62rem;">${st > 0 ? '★'.repeat(st) : (locked ? '🔒' : '•••')}</div>
+                  </button>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      body.querySelectorAll(".stage-cell").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = Number(btn.dataset.st);
+          if (id > profile.maxStage) {
+            Sound.err();
+            document.getElementById("stagesModal").classList.remove("open");
+            setGuide("🔒", `A Fase ${id} está bloqueada. Conclua a Fase ${profile.maxStage} primeiro.`, "err");
+            return;
+          }
+          document.getElementById("stagesModal").classList.remove("open");
+          startStage(id);
+        });
+      });
+      document.getElementById("stagesModal").classList.add("open");
+    });
+    document.getElementById("btnCloseStages").addEventListener("click", () => document.getElementById("stagesModal").classList.remove("open"));
+
+    // Vitória Modal
+    document.getElementById("btnVicRepeat").addEventListener("click", () => {
+      document.getElementById("victoryModal").classList.remove("open");
+      startStage(state.def.id);
+    });
+    document.getElementById("btnVicNext").addEventListener("click", () => {
+      document.getElementById("victoryModal").classList.remove("open");
+      startStage(state.def.id < 30 ? state.def.id + 1 : 1);
+    });
+
+    // Temas Visuais
+    document.getElementById("btnOpenThemes").addEventListener("click", () => {
+      renderThemesModal();
+      document.getElementById("themesModal").classList.add("open");
+    });
+    document.getElementById("btnCloseThemes").addEventListener("click", () => document.getElementById("themesModal").classList.remove("open"));
+
+    function renderThemesModal() {
+      document.getElementById("themeCoins").textContent = profile.coins;
+      const grid = document.getElementById("themesGrid");
+      grid.innerHTML = THEMES.map(t => {
+        const unlocked = profile.unlockedThemes.includes(t.id);
+        const active = profile.theme === t.id;
+        return `
+          <div class="theme-card">
+            <div style="font-weight:800; font-size:0.86rem;">${t.name}</div>
+            <div style="font-size:0.74rem; color:var(--text-dim);">${t.desc}</div>
+            <button type="button" class="pill btn" style="justify-content:center; border-color:var(--accent);" data-th="${t.id}">
+              ${active ? "✓ Tema Ativo" : (unlocked ? "Aplicar Tema" : `Desbloquear (${t.price} 🪙)`)}
+            </button>
+          </div>
+        `;
+      }).join("");
+
+      grid.querySelectorAll("[data-th]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const t = THEMES.find(x => x.id === btn.dataset.th);
+          if (!t) return;
+          if (profile.unlockedThemes.includes(t.id)) {
+            applyTheme(t.id);
+            renderThemesModal();
+            Sound.step();
+          } else {
+            if (profile.coins < t.price) {
+              Sound.err();
+              btn.textContent = `Faltam ${t.price - profile.coins} 🪙 — vença fases!`;
+              return;
+            }
+            profile.coins -= t.price;
+            profile.unlockedThemes.push(t.id);
+            applyTheme(t.id);
+            updateHeader();
+            renderThemesModal();
+            Sound.win();
+          }
+        });
+      });
+    }
+
+    // Guia Rápido Git
+    document.getElementById("btnOpenGuide").addEventListener("click", () => {
+      document.getElementById("guideCommandsList").innerHTML = Object.values(COMMANDS).map(c => `
+        <div style="background:var(--surface-2); border:1px solid var(--border); border-radius:9px; padding:7px 10px;">
+          <div style="font-family:'JetBrains Mono', monospace; font-weight:800; font-size:0.78rem; color:var(--accent);">$ ${c.code}</div>
+          <div style="font-size:0.74rem; color:var(--text-dim); margin-top:2px;">${c.desc}</div>
+        </div>
+      `).join("");
+      document.getElementById("guideModal").classList.add("open");
+    });
+    document.getElementById("btnCloseGuide").addEventListener("click", () => document.getElementById("guideModal").classList.remove("open"));
+
+    /* ==========================================================================
+       INICIALIZAÇÃO
+       ========================================================================== */
+    // Fecha modais com ESC ou clicando fora (exceto passaporte da 1ª vez e vitória)
+    function closableModals() {
+      return ["stagesModal", "themesModal", "guideModal", "passportModal"]
+        .map(id => document.getElementById(id))
+        .filter(m => m.classList.contains("open") && !(m.id === "passportModal" && !profile.created));
+    }
+    function closeModal(m) {
+      if (m.id === "passportModal") stopCamera();
+      m.classList.remove("open");
+    }
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") closableModals().forEach(closeModal);
+    });
+    document.querySelectorAll(".modal-bg").forEach(bg => {
+      bg.addEventListener("click", e => {
+        if (e.target === bg && closableModals().includes(bg)) closeModal(bg);
+      });
+    });
+
+    window.addEventListener("DOMContentLoaded", () => {
+      loadProfile();
+      if (!profile.unlockedThemes.includes(profile.theme)) profile.theme = "vscode";
+      if (profile.currentStage > profile.maxStage) profile.currentStage = profile.maxStage;
+      Sound.set(profile.sound !== false);
+      document.getElementById("btnAudio").textContent = profile.sound !== false ? "🔊" : "🔇";
+      applyTheme(profile.theme);
+      startStage(profile.currentStage || 1);
+      if (!profile.created) openPassport(true);
+    });
+  </script>
+</body>
+</html>
