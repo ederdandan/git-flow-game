@@ -1086,64 +1086,67 @@
        ========================================================================== */
     const STAGES = [
       // ==================== NÍVEL 1 — FÁCIL (1 a 10) ====================
+      // `must`: comandos obrigatórios da fase. O push só libera depois de usar todos.
+      // Cada fase tem uma combinação única (validada no teste automático).
       {
         id: 1, lvl: 1, title: "Fase 1 • Primeiro Repositório", par: 4,
         goal: "Inicie o Git (git init), prepare o index.html (git add .), salve um commit e envie ao GitHub (git push).",
-        needInit: true, files: [{ name: "index.html", type: "new" }],
+        needInit: true, must: ["init"], files: [{ name: "index.html", type: "new" }],
         hint: "init"
       },
       {
-        id: 2, lvl: 1, title: "Fase 2 • Fluxo Básico Completo", par: 3,
-        goal: "O repositório já está iniciado! Prepare app.js, salve um commit e envie para o GitHub.",
-        needInit: false, files: [{ name: "app.js", type: "mod" }],
+        id: 2, lvl: 1, title: "Fase 2 • Fluxo Básico com 2 Arquivos", par: 3,
+        goal: "O repositório já existe! Prepare os dois arquivos juntos com 'git add .', salve um commit e envie ao GitHub.",
+        needInit: false, files: [{ name: "app.js", type: "mod" }, { name: "style.css", type: "new" }],
         hint: "add"
       },
       {
-        id: 3, lvl: 1, title: "Fase 3 • Múltiplos Arquivos", par: 3,
-        goal: "Prepare os dois arquivos juntos com 'git add .', salve o commit e envie ao GitHub.",
-        needInit: false, files: [{ name: "index.html", type: "mod" }, { name: "style.css", type: "new" }],
-        hint: "add"
-      },
-      {
-        id: 4, lvl: 1, title: "Fase 4 • Verificando o Status", par: 4,
+        id: 3, lvl: 1, title: "Fase 3 • Verificando o Status", par: 4,
         goal: "Use 'git status' para checar sua pasta, depois prepare, commite e envie ao GitHub.",
-        needInit: false, requireInspect: "status", files: [{ name: "contato.html", type: "new" }],
+        needInit: false, must: ["status"], files: [{ name: "contato.html", type: "new" }],
         hint: "status"
+      },
+      {
+        id: 4, lvl: 1, title: "Fase 4 • Inspecionando Mudanças (diff)", par: 4,
+        goal: "Use 'git diff' para revisar a alteração em login.js, depois prepare, commite e dê push.",
+        needInit: false, must: ["diff"], files: [{ name: "login.js", type: "mod" }],
+        hint: "diff"
       },
       {
         id: 5, lvl: 1, title: "Fase 5 • Descartando um Erro", par: 4,
         goal: "Há um arquivo com erro! Descarte-o com 'git restore .', depois prepare o arquivo bom, commite e dê push.",
-        needInit: false, files: [{ name: "bug.js", type: "err" }, { name: "menu.js", type: "mod" }],
+        needInit: false, must: ["restore"], files: [{ name: "bug.js", type: "err" }, { name: "menu.js", type: "mod" }],
         hint: "restore"
       },
       {
-        id: 6, lvl: 1, title: "Fase 6 • Inspecionando Mudanças (diff)", par: 4,
-        goal: "Use 'git diff' para revisar a alteração em login.js, depois prepare, commite e dê push.",
-        needInit: false, requireInspect: "diff", files: [{ name: "login.js", type: "mod" }],
-        hint: "diff"
-      },
-      {
-        id: 7, lvl: 1, title: "Fase 7 • Dois Commits Seguidos", par: 5,
+        id: 6, lvl: 1, title: "Fase 6 • Dois Commits Seguidos", par: 5,
         goal: "Prepare e commite o primeiro arquivo; depois o segundo arquivo aparecerá para você commitar e dar push.",
         needInit: false, files: [{ name: "header.html", type: "new" }], nextWave: [{ name: "footer.html", type: "new" }],
         hint: "add"
       },
       {
-        id: 8, lvl: 1, title: "Fase 8 • Revisão + Limpeza", par: 5,
-        goal: "Descarte o erro (git restore .), cheque com 'git status', prepare, commite e envie.",
-        needInit: false, requireInspect: "status", files: [{ name: "crash.css", type: "err" }, { name: "tema.css", type: "mod" }],
+        id: 7, lvl: 1, title: "Fase 7 • Limpeza + Status", par: 5,
+        goal: "Descarte o erro (git restore .), confira a pasta com 'git status', prepare, commite e envie.",
+        needInit: false, must: ["restore", "status"], files: [{ name: "crash.css", type: "err" }, { name: "tema.css", type: "mod" }],
         hint: "restore"
       },
       {
-        id: 9, lvl: 1, title: "Fase 9 • Projeto do Zero", par: 4,
-        goal: "Inicie o Git, prepare README.md, salve o commit e publique no GitHub.",
-        needInit: true, files: [{ name: "README.md", type: "new" }],
+        id: 8, lvl: 1, title: "Fase 8 • Projeto do Zero com Status", par: 5,
+        goal: "Inicie o Git (git init), confira o que existe com 'git status', prepare README.md, commite e publique.",
+        needInit: true, must: ["init", "status"], files: [{ name: "README.md", type: "new" }],
         hint: "init"
       },
       {
-        id: 10, lvl: 1, title: "Fase 10 • Desafio Nível Fácil", par: 5,
-        goal: "Inicie o repositório, limpe o arquivo com erro, prepare o código limpo, commite e dê push!",
-        needInit: true, files: [{ name: "erro.log", type: "err" }, { name: "sistema.js", type: "new" }],
+        id: 9, lvl: 1, title: "Fase 9 • Revisar e Limpar", par: 5,
+        goal: "Revise as mudanças com 'git diff', descarte o arquivo quebrado com 'git restore .', prepare, commite e envie.",
+        needInit: false, must: ["diff", "restore"], files: [{ name: "debug.tmp", type: "err" }, { name: "carrinho.js", type: "mod" }],
+        hint: "diff"
+      },
+      {
+        id: 10, lvl: 1, title: "Fase 10 • Desafio Nível Fácil", par: 7,
+        goal: "Inicie o repositório, limpe o erro, commite 'sistema.js'; depois 'config.json' aparece: commite também e dê push!",
+        needInit: true, must: ["init", "restore"], files: [{ name: "erro.log", type: "err" }, { name: "sistema.js", type: "new" }],
+        nextWave: [{ name: "config.json", type: "new" }],
         hint: "init"
       },
 
@@ -1151,123 +1154,124 @@
       {
         id: 11, lvl: 2, title: "Fase 11 • Criando uma Branch", par: 7,
         goal: "Crie 'nova-tela' (git branch nova-tela), entre nela (git switch nova-tela), prepare, commite, volte à main e faça merge + push!",
-        needInit: false, needBranchWork: true, files: [{ name: "perfil.html", type: "new" }],
+        needInit: false, needBranchWork: true, must: ["branch", "switch_b"], files: [{ name: "perfil.html", type: "new" }],
         hint: "branch"
       },
       {
         id: 12, lvl: 2, title: "Fase 12 • Atalho switch -c", par: 6,
         goal: "Use 'git switch -c nova-tela' para criar e entrar na branch de uma vez, commite o arquivo, volte à main e una com merge!",
-        needInit: false, needBranchWork: true, files: [{ name: "card.css", type: "new" }],
+        needInit: false, needBranchWork: true, must: ["switch_new"], files: [{ name: "card.css", type: "new" }],
         hint: "switch_new"
       },
       {
         id: 13, lvl: 2, title: "Fase 13 • Atualizando do GitHub (pull)", par: 2,
         goal: "Um colega enviou alterações ao GitHub! Baixe com 'git pull' e depois envie sua versão com 'git push'.",
-        needInit: false, needPull: true, files: [],
+        needInit: false, needPull: true, must: ["pull"], files: [],
         hint: "pull"
       },
       {
         id: 14, lvl: 2, title: "Fase 14 • Guardando Rascunho (stash)", par: 6,
         goal: "Guarde o rascunho na gaveta (git stash), baixe novidades (git pull), recupere (git stash pop), commite e envie!",
-        needInit: false, needPull: true, needStashCycle: true, files: [{ name: "rascunho.js", type: "mod" }],
+        needInit: false, needPull: true, needStashCycle: true, must: ["stash", "pull", "stash_pop"], files: [{ name: "rascunho.js", type: "mod" }],
         hint: "stash"
       },
       {
-        id: 15, lvl: 2, title: "Fase 15 • Feature Isolada + Push", par: 6,
-        goal: "Desenvolva 'busca.js' dentro da branch 'nova-tela', volte para 'main', faça 'git merge nova-tela' e 'git push'.",
-        needInit: false, needBranchWork: true, files: [{ name: "busca.js", type: "new" }],
+        id: 15, lvl: 2, title: "Fase 15 • Dois Commits na Branch", par: 8,
+        goal: "Na branch 'nova-tela' (git switch -c), commite 'busca.js'; depois 'filtro.js' aparece: commite também, volte à main, merge e push.",
+        needInit: false, needBranchWork: true, must: ["switch_new"], files: [{ name: "busca.js", type: "new" }],
+        nextWave: [{ name: "filtro.js", type: "new" }],
         hint: "switch_new"
       },
       {
         id: 16, lvl: 2, title: "Fase 16 • Pull Antes do Trabalho", par: 4,
         goal: "Sincronize primeiro com 'git pull', depois prepare 'api.js', salve o commit e envie ao GitHub.",
-        needInit: false, needPull: true, files: [{ name: "api.js", type: "mod" }],
+        needInit: false, needPull: true, must: ["pull"], files: [{ name: "api.js", type: "mod" }],
         hint: "pull"
       },
       {
         id: 17, lvl: 2, title: "Fase 17 • Gaveta Stash Simples", par: 5,
         goal: "Use 'git stash' para guardar 'modal.js', recupere com 'git stash pop', prepare, commite e dê push.",
-        needInit: false, needStashCycle: true, files: [{ name: "modal.js", type: "new" }],
+        needInit: false, needStashCycle: true, must: ["stash", "stash_pop"], files: [{ name: "modal.js", type: "new" }],
         hint: "stash"
       },
       {
         id: 18, lvl: 2, title: "Fase 18 • Branch + Pull", par: 7,
         goal: "Atualize com 'git pull', crie a branch 'nova-tela', commite 'galeria.html', volte à main, faça merge e push.",
-        needInit: false, needPull: true, needBranchWork: true, files: [{ name: "galeria.html", type: "new" }],
+        needInit: false, needPull: true, needBranchWork: true, must: ["switch_new"], files: [{ name: "galeria.html", type: "new" }],
         hint: "pull"
       },
       {
         id: 19, lvl: 2, title: "Fase 19 • Stash + Branch", par: 8,
         goal: "Guarde 'widget.js' no stash, entre em 'nova-tela', recupere com 'stash pop', commite, volte à main, merge e push!",
-        needInit: false, needStashCycle: true, needBranchWork: true, files: [{ name: "widget.js", type: "new" }],
+        needInit: false, needStashCycle: true, needBranchWork: true, must: ["stash", "switch_new", "stash_pop"], files: [{ name: "widget.js", type: "new" }],
         hint: "stash"
       },
       {
-        id: 20, lvl: 2, title: "Fase 20 • Desafio Nível Médio", par: 7,
-        goal: "Sincronize (pull), trabalhe na branch 'nova-tela', integre na 'main' (merge) e publique no GitHub (push)!",
-        needInit: false, needPull: true, needBranchWork: true, files: [{ name: "dashboard.js", type: "new" }],
-        hint: "pull"
+        id: 20, lvl: 2, title: "Fase 20 • Desafio Nível Médio", par: 9,
+        goal: "Guarde 'dashboard.js' (git stash), sincronize (git pull), entre em 'nova-tela', recupere (stash pop), commite, volte à main, merge e push!",
+        needInit: false, needPull: true, needStashCycle: true, needBranchWork: true, must: ["stash", "pull", "switch_new", "stash_pop"], files: [{ name: "dashboard.js", type: "new" }],
+        hint: "stash"
       },
 
       // ==================== NÍVEL 3 — DIFÍCIL (21 a 30) ====================
       {
         id: 21, lvl: 3, title: "Fase 21 • Desfazendo Commit (revert)", par: 2,
         goal: "O último commit no histórico está quebrado! Use 'git revert HEAD' para anulá-lo com segurança e dê 'git push'.",
-        needInit: false, brokenCommit: true, files: [],
+        needInit: false, brokenCommit: true, must: ["revert"], files: [],
         hint: "revert"
       },
       {
         id: 22, lvl: 3, title: "Fase 22 • Apagando Commit Local (reset --hard)", par: 4,
         goal: "O último commit local tem um bug grave! Apague-o com 'git reset --hard HEAD~1', depois prepare o arquivo bom, commite e dê push.",
-        needInit: false, brokenCommit: true, files: [{ name: "seguro.js", type: "new" }],
+        needInit: false, brokenCommit: true, must: ["reset_hard"], files: [{ name: "seguro.js", type: "new" }],
         hint: "reset_hard"
       },
       {
         id: 23, lvl: 3, title: "Fase 23 • Corrigindo Commit (reset --soft)", par: 3,
         goal: "Use 'git reset --soft HEAD~1' para devolver o commit à Preparação, depois salve novamente e dê push.",
-        needInit: false, softCommit: true, files: [],
+        needInit: false, softCommit: true, must: ["reset_soft"], files: [],
         hint: "reset_soft"
       },
       {
         id: 24, lvl: 3, title: "Fase 24 • Completando Commit (--amend)", par: 3,
         goal: "Você esqueceu 'icone.svg' no último commit! Prepare com 'git add .', una ao commit anterior com 'git commit --amend' e dê push.",
-        needInit: false, files: [{ name: "icone.svg", type: "new" }], preferAmend: true,
+        needInit: false, files: [{ name: "icone.svg", type: "new" }], preferAmend: true, must: ["amend"],
         hint: "add"
       },
       {
         id: 25, lvl: 3, title: "Fase 25 • Copiando 1 Commit (cherry-pick)", par: 2,
         goal: "A branch 'hotfix' tem a correção 'fix' pronta! Traga só esse commit com 'git cherry-pick fix' e envie ao GitHub.",
-        needInit: false, hasCherryFix: true, files: [],
+        needInit: false, hasCherryFix: true, must: ["cherry"], files: [],
         hint: "cherry"
       },
       {
         id: 26, lvl: 3, title: "Fase 26 • Etiquetando Versão (tag v1.0)", par: 4,
         goal: "Prepare 'release.js', faça commit, marque o lançamento com 'git tag v1.0' e envie ao GitHub!",
-        needInit: false, needTag: true, files: [{ name: "release.js", type: "new" }],
+        needInit: false, needTag: true, must: ["tag"], files: [{ name: "release.js", type: "new" }],
         hint: "add"
       },
       {
         id: 27, lvl: 3, title: "Fase 27 • Resgate no Histórico (reflog)", par: 2,
         goal: "Um commit importante foi apagado por engano! Resgate-o com 'git reflog' e envie ao GitHub com 'git push'.",
-        needInit: false, lostCommit: true, files: [],
+        needInit: false, lostCommit: true, must: ["reflog"], files: [],
         hint: "reflog"
       },
       {
         id: 28, lvl: 3, title: "Fase 28 • Cherry-Pick + Tag v1.0", par: 3,
         goal: "Puxe o commit 'fix' com 'git cherry-pick fix', marque 'git tag v1.0' e envie ao GitHub!",
-        needInit: false, hasCherryFix: true, needTag: true, files: [],
+        needInit: false, hasCherryFix: true, needTag: true, must: ["cherry", "tag"], files: [],
         hint: "cherry"
       },
       {
         id: 29, lvl: 3, title: "Fase 29 • Revert + Novo Arquivo", par: 4,
         goal: "Anule o commit quebrado (git revert HEAD), depois prepare 'patch.js', commite e envie ao GitHub.",
-        needInit: false, brokenCommit: true, files: [{ name: "patch.js", type: "new" }],
+        needInit: false, brokenCommit: true, must: ["revert"], files: [{ name: "patch.js", type: "new" }],
         hint: "revert"
       },
       {
         id: 30, lvl: 3, title: "Fase 30 • Mestre Supremo do Git", par: 5,
         goal: "Resgate o commit perdido (git reflog), prepare 'final.js' (git add .), una ao commit com '--amend', marque 'git tag v1.0' e dê 'git push'!",
-        needInit: false, lostCommit: true, needTag: true, preferAmend: true, files: [{ name: "final.js", type: "new" }],
+        needInit: false, lostCommit: true, needTag: true, preferAmend: true, must: ["reflog", "amend", "tag"], files: [{ name: "final.js", type: "new" }],
         hint: "reflog"
       }
     ];
@@ -1317,7 +1321,14 @@
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(profile)); } catch (e) {}
     }
 
+    function firstUnbeatenStage() {
+      const s = STAGES.find(st => !(profile.stars[st.id] > 0));
+      return s ? s.id : STAGES.length;
+    }
+
     function startStage(id) {
+      // Trava central: nenhuma fase acima da liberada pode começar, venha de onde vier.
+      if (id > profile.maxStage) id = profile.maxStage;
       const def = STAGES.find(s => s.id === id) || STAGES[0];
       profile.currentStage = def.id;
       saveProfile();
@@ -1336,7 +1347,7 @@
         merged: !def.needBranchWork,
         pulled: !def.needPull,
         stashCompleted: !def.needStashCycle,
-        inspected: !def.requireInspect,
+        used: [],
         brokenCommit: Boolean(def.brokenCommit),
         softCommit: Boolean(def.softCommit),
         lostCommit: Boolean(def.lostCommit),
@@ -1370,8 +1381,11 @@
       if (s.brokenCommit) return d.hint === "reset_hard" ? "reset_hard" : "revert";
       if (s.softCommit) return "reset_soft";
       if (s.hasCherryFix) return "cherry";
+      // comandos de revisão/limpeza obrigatórios, na ordem pedida pela missão
+      const look = (d.must || []).find(k => ["status", "diff", "restore"].includes(k) && !s.used.includes(k)
+        && (k !== "restore" || s.working.some(f => f.type === "err")));
+      if (look) return look;
       if (s.working.some(f => f.type === "err")) return "restore";
-      if (!s.inspected) return d.requireInspect;
       if (!s.stashCompleted) {
         if (s.stashed.length === 0) return "stash";
         if (!s.pulled) return "pull";
@@ -1421,6 +1435,14 @@
         return;
       }
 
+      // Atalhos alternativos não valem: a fase precisa do comando que ela ensina
+      const ALTERNATIVE = { switch_new: "branch", branch: "switch_new", revert: "reset_hard", reset_hard: "revert" };
+      const must = state.def.must || [];
+      if (ALTERNATIVE[key] && must.includes(ALTERNATIVE[key]) && !must.includes(key)) {
+        rejectAction(cmd.code, `Esta fase ensina '${COMMANDS[ALTERNATIVE[key]].code}'. Use esse comando no lugar de '${cmd.code}'.`);
+        return;
+      }
+
       let ok = true;
       let guideMsg = "";
       let termMsg = "";
@@ -1439,14 +1461,12 @@
           break;
 
         case "status":
-          state.inspected = true;
           Sound.step();
           guideMsg = `Sua Pasta tem ${state.working.length} arquivo(s) e Preparação tem ${state.staging.length}.`;
           termMsg = `On branch ${state.branch} — ${state.working.length} unstaged, ${state.staging.length} staged`;
           break;
 
         case "diff":
-          state.inspected = true;
           Sound.step();
           guideMsg = "Diferenças revisadas! Se o arquivo estiver certo, leve-o para Preparação com 'git add .'.";
           termMsg = "diff --git a/file b/file (+12 lines, -2 lines)";
@@ -1667,12 +1687,13 @@
           break;
 
         case "reset_hard":
-          if (!state.brokenCommit && !state.softCommit) {
+          if (!state.brokenCommit) {
             ok = false;
-            guideMsg = "Não há commit quebrado para apagar. Cuidado: reset --hard apaga trabalho!";
+            guideMsg = state.softCommit
+              ? "Cuidado: reset --hard apagaria seu trabalho! Aqui use 'git reset --soft HEAD~1' para manter os arquivos."
+              : "Não há commit quebrado para apagar. Cuidado: reset --hard apaga trabalho!";
           } else {
             state.brokenCommit = false;
-            state.softCommit = false;
             state.commits.pop();
             Sound.step();
             flashZone("zoneHistory");
@@ -1787,9 +1808,10 @@
             guideMsg = "Marque a versão oficial com 'git tag v1.0' antes de fazer o push!";
             break;
           }
-          if (!state.inspected) {
+          const missing = (state.def.must || []).filter(k => !state.used.includes(k));
+          if (missing.length) {
             ok = false;
-            guideMsg = `Use 'git ${state.def.requireInspect}' para revisar antes de enviar!`;
+            guideMsg = `Esta fase ensina ${missing.map(k => `'${COMMANDS[k].code}'`).join(" e ")}: use antes de enviar!`;
             break;
           }
 
@@ -1808,6 +1830,7 @@
 
       state.steps++;
       state.errorStreak = 0;
+      if (!state.used.includes(key)) state.used.push(key);
       setGuide("🤖", guideMsg, "ok");
       setTerminal(`$ ${cmd.code}`, termMsg || "Comando executado.");
       renderAll();
@@ -1858,7 +1881,7 @@
       profile.coins += earned;
 
       const nextId = state.def.id < 30 ? state.def.id + 1 : 30;
-      if (nextId > profile.maxStage) profile.maxStage = nextId;
+      profile.maxStage = Math.max(1, firstUnbeatenStage()); // só libera a próxima se todas as anteriores foram vencidas
       saveProfile();
       updateHeader();
 
@@ -2374,7 +2397,11 @@
     window.addEventListener("DOMContentLoaded", () => {
       loadProfile();
       if (!profile.unlockedThemes.includes(profile.theme)) profile.theme = "vscode";
+      // Progresso estritamente em sequência: só libera até a 1ª fase ainda não vencida.
+      // Corrige saves antigos que pularam fases pelo mapa.
+      profile.maxStage = Math.min(profile.maxStage || 1, firstUnbeatenStage());
       if (profile.currentStage > profile.maxStage) profile.currentStage = profile.maxStage;
+      saveProfile();
       Sound.set(profile.sound !== false);
       document.getElementById("btnAudio").textContent = profile.sound !== false ? "🔊" : "🔇";
       applyTheme(profile.theme);
