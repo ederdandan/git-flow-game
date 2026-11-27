@@ -1,5 +1,5 @@
 // Service worker: rede primeiro (sempre pega a versão nova), cache como fallback offline.
-const CACHE = "git-flow-v3";
+const CACHE = "git-flow-v4";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest", "./icon.svg", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png"];
 
 self.addEventListener("install", e => {
@@ -16,6 +16,8 @@ self.addEventListener("activate", e => {
 });
 
 self.addEventListener("fetch", e => {
+  // Métricas (GoatCounter): sempre pela rede, nunca no cache.
+  if (/goatcounter\.com|gc\.zgo\.at/.test(e.request.url)) return;
   if (e.request.method !== "GET") return;
   const url = new URL(e.request.url);
   if (url.origin !== location.origin) return; // fontes do Google etc. seguem direto
